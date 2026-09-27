@@ -34,115 +34,123 @@
       </div>
 
       <div class="portfolio__grid">
-        <a href="#" class="portfolio__item" data-category="ai-image" data-name="휴먼 리페어 세럼">
-            <img th:src="@{/images/portfolio/item-01.jpg}" alt="휴먼 리페어 세럼">
-            <span class="portfolio__item-label">휴먼 리페어 세럼</span>
+
+        <!-- 이미지 항목 (AI 이미지 / 카드뉴스 / 상세페이지) -->
+        <a th:each="item : ${portfolioItems}"
+           th:href="${item.linkUrl != null and !item.linkUrl.isEmpty()} ? ${item.linkUrl} : '#'"
+           class="portfolio__item"
+           th:data-category="${item.category}"
+           th:data-name="${item.name}">
+          <img th:src="@{${item.imagePath}}" th:alt="${item.name}">
+          <span class="portfolio__item-label" th:text="${item.name}">이름</span>
         </a>
-        <a href="#" class="portfolio__item" data-category="card-news" data-name="글로우 앰플">
-            <img th:src="@{/images/portfolio/item-02.jpg}" alt="글로우 앰플">
-            <span class="portfolio__item-label">글로우 앰플</span>
+
+        <!-- 영상 그룹 대표 카드 (그룹당 첫 번째 영상으로 미리보기) -->
+        <a th:if="${not #lists.isEmpty(productIntroVideos)}"
+           href="#vg-intro" class="portfolio__item portfolio__item--video"
+           data-category="video" th:data-name="${productIntroVideos[0].title}" data-target="vg-intro">
+          <span class="portfolio__item-thumb">
+            <img th:src="@{${productIntroVideos[0].thumbnailPath}}" th:alt="${productIntroVideos[0].title}">
+            <span class="portfolio__item-label" th:text="${productIntroVideos[0].title}">제목</span>
+          </span>
+          <span class="portfolio__item-group">제품 소개</span>
         </a>
-        <a href="#" class="portfolio__item" data-category="detail-page" data-name="퓨어 클렌징 오일">
-            <img th:src="@{/images/portfolio/item-03.jpg}" alt="퓨어 클렌징 오일">
-            <span class="portfolio__item-label">퓨어 클렌징 오일</span>
+
+        <a th:if="${not #lists.isEmpty(reviewVideos)}"
+           href="#vg-review" class="portfolio__item portfolio__item--video"
+           data-category="video" th:data-name="${reviewVideos[0].title}" data-target="vg-review">
+          <span class="portfolio__item-thumb">
+            <img th:src="@{${reviewVideos[0].thumbnailPath}}" th:alt="${reviewVideos[0].title}">
+            <span class="portfolio__item-label" th:text="${reviewVideos[0].title}">제목</span>
+          </span>
+          <span class="portfolio__item-group">제품 리뷰</span>
         </a>
-        <a href="#" class="portfolio__item" data-category="ai-image" data-name="모이스처 배리어 밤">
-            <img th:src="@{/images/portfolio/item-05.jpg}" alt="모이스처 배리어 밤">
-            <span class="portfolio__item-label">모이스처 배리어 밤</span>
+
+        <a th:if="${not #lists.isEmpty(shortformVideos)}"
+           href="#vg-short" class="portfolio__item portfolio__item--video"
+           data-category="video" th:data-name="${shortformVideos[0].title}" data-target="vg-short">
+          <span class="portfolio__item-thumb">
+            <img th:src="@{${shortformVideos[0].thumbnailPath}}" th:alt="${shortformVideos[0].title}">
+            <span class="portfolio__item-label" th:text="${shortformVideos[0].title}">제목</span>
+          </span>
+          <span class="portfolio__item-group">숏폼 콘텐츠</span>
         </a>
-        <a href="#" class="portfolio__item" data-category="card-news" data-name="비타민 토너">
-            <img th:src="@{/images/portfolio/item-06.jpg}" alt="비타민 토너">
-            <span class="portfolio__item-label">비타민 토너</span>
+
+        <a th:if="${not #lists.isEmpty(aiProductionVideos)}"
+           href="#vg-ai" class="portfolio__item portfolio__item--video"
+           data-category="video" th:data-name="${aiProductionVideos[0].title}" data-target="vg-ai">
+          <span class="portfolio__item-thumb">
+            <img th:src="@{${aiProductionVideos[0].thumbnailPath}}" th:alt="${aiProductionVideos[0].title}">
+            <span class="portfolio__item-label" th:text="${aiProductionVideos[0].title}">제목</span>
+          </span>
+          <span class="portfolio__item-group">AI 제작</span>
         </a>
-        <a href="#" class="portfolio__item" data-category="detail-page" data-name="콜라겐 앰플">
-            <img th:src="@{/images/portfolio/item-07.jpg}" alt="콜라겐 앰플">
-            <span class="portfolio__item-label">콜라겐 앰플</span>
-        </a>
-        <a href="#vg-intro" class="portfolio__item portfolio__item--video" data-category="video" data-name="리쥬란 제품소개" data-target="vg-intro">
-            <span class="portfolio__item-thumb">
-              <img th:src="@{/images/portfolio/video-01.jpg}" alt="리쥬란의 모든 것">
-              <span class="portfolio__item-label">리쥬란의 모든 것</span>
-            </span>
-            <span class="portfolio__item-group">제품 소개</span>
-        </a>
-        <a href="#vg-review" class="portfolio__item portfolio__item--video" data-category="video" data-name="리쥬란 리뷰" data-target="vg-review">
-            <span class="portfolio__item-thumb">
-              <img th:src="@{/images/portfolio/video-02.jpg}" alt="피부과 전문의 리뷰">
-              <span class="portfolio__item-label">피부과 전문의 리뷰</span>
-            </span>
-            <span class="portfolio__item-group">제품 리뷰</span>
-        </a>
-        <a href="#vg-short" class="portfolio__item portfolio__item--video" data-category="video" data-name="탈모 숏폼" data-target="vg-short">
-            <span class="portfolio__item-thumb">
-              <img th:src="@{/images/portfolio/video-03.jpg}" alt="4. 탈모">
-              <span class="portfolio__item-label">4. 탈모</span>
-            </span>
-            <span class="portfolio__item-group">숏폼 콘텐츠</span>
-        </a>
-        <a href="#vg-ai" class="portfolio__item portfolio__item--video" data-category="video" data-name="AI 제작 예시" data-target="vg-ai">
-            <span class="portfolio__item-thumb">
-              <img th:src="@{/images/portfolio/video-04.jpg}" alt="AI 제작 콘텐츠">
-              <span class="portfolio__item-label">AI 제작 콘텐츠</span>
-            </span>
-            <span class="portfolio__item-group">AI 제작</span>
-        </a>
+
+      </div>
+
+      <p class="portfolio__empty" hidden>검색 결과가 없습니다.</p>
+
+      <div class="portfolio__video-groups">
+
+        <div class="portfolio__video-group" id="vg-intro">
+          <h3 class="portfolio__video-heading">제품 소개</h3>
+          <div class="portfolio__video-row portfolio__video-row--wide">
+            <a th:each="video : ${productIntroVideos}"
+               th:href="${video.linkUrl}" target="_blank" rel="noopener"
+               class="portfolio__video-card" th:data-name="${video.title}">
+              <div class="portfolio__video-thumb">
+                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
+              </div>
+              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+            </a>
+          </div>
         </div>
 
-        <p class="portfolio__empty" hidden>검색 결과가 없습니다.</p>
-
-        <div class="portfolio__video-groups">
-
-            <div class="portfolio__video-group" id="vg-intro">
-            <h3 class="portfolio__video-heading">제품 소개</h3>
-            <div class="portfolio__video-row portfolio__video-row--wide">
-                <a href="#" target="_blank" rel="noopener" class="portfolio__video-card" data-name="리쥬란 제품소개">
-                <div class="portfolio__video-thumb">
-                    <img th:src="@{/images/portfolio/video-01.jpg}" alt="리쥬란 제품소개">
-                </div>
-                <span class="portfolio__video-title">리쥬란의 모든 것</span>
-                </a>
-            </div>
-            </div>
-
-            <div class="portfolio__video-group" id="vg-review">
-            <h3 class="portfolio__video-heading">제품 리뷰</h3>
-            <div class="portfolio__video-row portfolio__video-row--wide">
-                <a href="#" target="_blank" rel="noopener" class="portfolio__video-card" data-name="리쥬란 리뷰">
-                <div class="portfolio__video-thumb">
-                    <img th:src="@{/images/portfolio/video-02.jpg}" alt="리쥬란 리뷰">
-                </div>
-                <span class="portfolio__video-title">피부과 전문의 리뷰</span>
-                </a>
-            </div>
-            </div>
-
-            <div class="portfolio__video-group" id="vg-short">
-            <h3 class="portfolio__video-heading">숏폼 콘텐츠</h3>
-            <div class="portfolio__video-row portfolio__video-row--narrow">
-                <a href="#" target="_blank" rel="noopener" class="portfolio__video-card" data-name="탈모 숏폼">
-                <div class="portfolio__video-thumb">
-                    <img th:src="@{/images/portfolio/video-03.jpg}" alt="탈모 숏폼">
-                </div>
-                <span class="portfolio__video-title">4. 탈모</span>
-                </a>
-            </div>
-            </div>
-
-            <div class="portfolio__video-group" id="vg-ai">
-            <h3 class="portfolio__video-heading">AI 제작</h3>
-            <div class="portfolio__video-row portfolio__video-row--narrow">
-                <a href="#" target="_blank" rel="noopener" class="portfolio__video-card" data-name="AI 제작 예시">
-                <div class="portfolio__video-thumb">
-                    <img th:src="@{/images/portfolio/video-04.jpg}" alt="AI 제작 예시">
-                </div>
-                <span class="portfolio__video-title">AI 제작 콘텐츠</span>
-                </a>
-            </div>
-            </div>
+        <div class="portfolio__video-group" id="vg-review">
+          <h3 class="portfolio__video-heading">제품 리뷰</h3>
+          <div class="portfolio__video-row portfolio__video-row--wide">
+            <a th:each="video : ${reviewVideos}"
+               th:href="${video.linkUrl}" target="_blank" rel="noopener"
+               class="portfolio__video-card" th:data-name="${video.title}">
+              <div class="portfolio__video-thumb">
+                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
+              </div>
+              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+            </a>
+          </div>
         </div>
+
+        <div class="portfolio__video-group" id="vg-short">
+          <h3 class="portfolio__video-heading">숏폼 콘텐츠</h3>
+          <div class="portfolio__video-row portfolio__video-row--narrow">
+            <a th:each="video : ${shortformVideos}"
+               th:href="${video.linkUrl}" target="_blank" rel="noopener"
+               class="portfolio__video-card" th:data-name="${video.title}">
+              <div class="portfolio__video-thumb">
+                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
+              </div>
+              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="portfolio__video-group" id="vg-ai">
+          <h3 class="portfolio__video-heading">AI 제작</h3>
+          <div class="portfolio__video-row portfolio__video-row--narrow">
+            <a th:each="video : ${aiProductionVideos}"
+               th:href="${video.linkUrl}" target="_blank" rel="noopener"
+               class="portfolio__video-card" th:data-name="${video.title}">
+              <div class="portfolio__video-thumb">
+                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
+              </div>
+              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
 
     </div>
-
   </section>
 
   <div th:replace="~{fragments/footer :: footer}"></div>

@@ -46,48 +46,18 @@
     <div class="gif-gallery__inner">
       <h2 class="gif-gallery__title">GIF 템플릿</h2>
       <p class="gif-gallery__desc">데이터, 모션, 컬러 이미지로 신뢰도 높은 비주얼 콘텐츠를 제작합니다.</p>
-      <div class="gif-gallery__grid">
-        <div class="gif-gallery__item">
+      <div class="gif-gallery__grid" th:if="${not #lists.isEmpty(gifTemplates)}">
+        <div class="gif-gallery__item" th:each="template : ${gifTemplates}">
           <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 01</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 02</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 03</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 04</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 05</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 06</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 07</span>
-          </div>
-        </div>
-        <div class="gif-gallery__item">
-          <div class="gif-gallery__thumb">
-            <span class="gif-gallery__label">템플릿 08</span>
+            <img th:src="@{${template.imagePath}}" th:alt="${template.title}">
+            <span class="gif-gallery__label" th:text="${template.title}">템플릿 이름</span>
           </div>
         </div>
       </div>
+      
+      <p class="gif-gallery__empty" th:if="${#lists.isEmpty(gifTemplates)}">
+        아직 등록된 템플릿이 없습니다.
+      </p>
     </div>
   </section>
   <section class="notice">

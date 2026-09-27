@@ -1,28 +1,26 @@
 package com.hcreator.creator.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
+import com.hcreator.creator.domain.gif.GifTemplate;
+import com.hcreator.creator.repository.gif.GifTemplateRepository;
+import com.hcreator.creator.domain.portfolio.PortfolioItem;
+import com.hcreator.creator.domain.portfolio.PortfolioItemRepository;
+import com.hcreator.creator.domain.portfolio.PortfolioVideo;
+import com.hcreator.creator.domain.portfolio.PortfolioVideoRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
+@RequiredArgsConstructor
 public class PageController {
 
-    /**
-     * 헤더 네비게이션에서 현재 위치를 표시하기 위한 키.
-     * 경로 접두사로 판별하므로 /marketing/gif 같은 하위 페이지도 자동으로 잡힌다.
-     */
-    @ModelAttribute("activeNav")
-    public String activeNav(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        if (path.startsWith("/about")) return "about";
-        if (path.startsWith("/clinical")) return "clinical";
-        if (path.startsWith("/marketing")) return "marketing";
-        if (path.startsWith("/voucher")) return "voucher";
-        if (path.startsWith("/portfolio")) return "portfolio";
-        if (path.startsWith("/support")) return "support";
-        return "home";
-    }
+    private final GifTemplateRepository gifTemplateRepository;
+    private final PortfolioItemRepository portfolioItemRepository;
+    private final PortfolioVideoRepository portfolioVideoRepository;
 
     @GetMapping("/")
     public String index() {
@@ -45,7 +43,9 @@ public class PageController {
     }
 
     @GetMapping("/marketing/gif")
-    public String marketingGif() {
+    public String marketingGif(Model model) {
+        List<GifTemplate> gifTemplates = gifTemplateRepository.findAllByOrderBySortOrderAsc();
+        model.addAttribute("gifTemplates", gifTemplates);
         return "marketing-gif";
     }
 
@@ -75,7 +75,17 @@ public class PageController {
     }
 
     @GetMapping("/portfolio")
-    public String portfolio() {
+    public String portfolio(Model model) {
+        List<PortfolioItem> items = portfolioItemRepository.findAllByOrderBySortOrderAsc();
+        List<PortfolioVideo> videos = portfolioVideoRepository.findAllByOrderBySortOrderAsc();
+
+        // 영상은 그룹별로 나눠서 넘김 (product-intro / review / shortform / ai-production)
+        model.addAttribute("portfolioItems", items);
+        model.addAttribute("productIntroVideos", filterByGroup(videos, "product-intro"));
+        model.addAttribute("reviewVideos", filterByGroup(videos, "review"));
+        model.addAttribute("shortformVideos", filterByGroup(videos, "shortform"));
+        model.addAttribute("aiProductionVideos", filterByGroup(videos, "ai-production"));
+
         return "portfolio";
     }
 
@@ -92,5 +102,11 @@ public class PageController {
     @GetMapping("/support/inquiry")
     public String supportInquiry() {
         return "support-inquiry";
+    }
+
+    private List<PortfolioVideo> filterByGroup(List<PortfolioVideo> videos, String group) {
+        return videos.stream()
+                .filter(v -> group.equals(v.getGroupType()))
+                .collect(Collectors.toList());
     }
 }
