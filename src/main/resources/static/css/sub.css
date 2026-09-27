@@ -1022,7 +1022,7 @@
   height: auto;
   border-radius: 8px;
   margin: 16px 0;
-  display: block;
+  display: inline-block;   /* block → inline-block */
 }
 
 /* ===========================================================
