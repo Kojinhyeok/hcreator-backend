@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>서비스 문의 | H CREATOR</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/sub.css}">
+</head>
+<body>
+
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <section class="service-hero">
+    <div class="service-hero__inner">
+      <p class="service-hero__label">INQUIRY</p>
+      <h1 class="service-hero__title">서비스 문의</h1>
+      <p class="service-hero__desc">궁금한 점을 남겨주시면 확인 후 빠르게 답변드리겠습니다.</p>
+    </div>
+  </section>
+
+  <section class="apply-form">
+    <div class="apply-form__inner">
+
+      <form class="apply-form__form" id="inquiryForm">
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqCompany">회사명<span class="apply-form__req">*</span></label>
+            <input type="text" id="inqCompany" name="companyName" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row apply-form__row--split">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqName">이름<span class="apply-form__req">*</span></label>
+            <input type="text" id="inqName" name="contactName" class="apply-form__input">
+          </div>
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqPhone">연락처<span class="apply-form__req">*</span></label>
+            <input type="tel" id="inqPhone" name="contactPhone" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqEmail">이메일<span class="apply-form__req">*</span></label>
+            <input type="email" id="inqEmail" name="contactEmail" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqService">문의 서비스</label>
+            <select id="inqService" name="inquiryService" class="apply-form__input">
+              <option value="gif">임상 GIF</option>
+              <option value="product">제품 촬영</option>
+              <option value="detail-page">상세페이지</option>
+              <option value="blog">블로그 마케팅</option>
+              <option value="video">영상 제작</option>
+              <option value="voucher">수출바우처</option>
+              <option value="etc">기타 문의</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqTitle">문의 제목</label>
+            <input type="text" id="inqTitle" name="title" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqContent">문의 내용</label>
+            <textarea id="inqContent" name="content" class="apply-form__textarea"></textarea>
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqFile">파일 첨부</label>
+            <input type="file" id="inqFile" name="attachment" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group">
+            <label class="apply-form__label" for="inqPassword">비밀번호</label>
+            <input type="password" id="inqPassword" name="password" class="apply-form__input">
+          </div>
+        </div>
+
+        <div class="apply-form__row">
+          <div class="apply-form__group apply-form__group--consent">
+            <label class="apply-form__consent">
+              <input type="checkbox" id="inqConsent" name="privacyConsent" required>
+              개인정보 수집 및 이용에 동의합니다.<span class="apply-form__req">*</span>
+              <a href="/privacy" target="_blank" class="apply-form__consent-link">[개인정보처리방침]</a>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="apply-form__submit">문의하기</button>
+        <p id="inquiryResultMsg" class="apply-form__result" style="display:none;"></p>
+      </form>
+
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>포트폴리오 관리 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+
+<body data-page="portfolio-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<h1 class="h3 mb-3"><strong>포트폴리오 관리</strong></h1>
+
+				<ul class="nav nav-tabs mb-3" id="portfolioTabs">
+					<li class="nav-item">
+						<a class="nav-link active" href="#" data-tab="items">이미지 항목</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#" data-tab="videos">영상</a>
+					</li>
+				</ul>
+
+				<!-- 이미지 항목 탭 -->
+				<div id="tab-items">
+					<div class="d-flex justify-content-end mb-3">
+						<button class="btn btn-primary" onclick="openAddItemModal()">
+							<i class="align-middle" data-feather="plus"></i> 항목 등록
+						</button>
+					</div>
+					<div class="card">
+						<div class="table-responsive">
+							<table class="table table-hover my-0" id="itemTable">
+								<thead>
+								<tr>
+									<th style="width:80px;">미리보기</th>
+									<th style="width:120px;">카테고리</th>
+									<th>이름</th>
+									<th style="width:100px;">순서</th>
+									<th style="width:130px;">관리</th>
+								</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<!-- 영상 탭 -->
+				<div id="tab-videos" class="d-none">
+					<div class="d-flex justify-content-end mb-3">
+						<button class="btn btn-primary" onclick="openAddVideoModal()">
+							<i class="align-middle" data-feather="plus"></i> 영상 등록
+						</button>
+					</div>
+					<div class="card">
+						<div class="table-responsive">
+							<table class="table table-hover my-0" id="videoTable">
+								<thead>
+								<tr>
+									<th style="width:80px;">썸네일</th>
+									<th style="width:130px;">그룹</th>
+									<th>제목</th>
+									<th style="width:100px;">순서</th>
+									<th style="width:130px;">관리</th>
+								</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<!-- 이미지 항목 모달 -->
+<div class="modal fade" id="itemModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="itemModalTitle">항목 등록</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="itemForm">
+					<input type="hidden" id="itemId">
+
+					<div class="mb-3">
+						<label class="form-label">이미지</label>
+						<input type="file" class="form-control" id="itemFile" accept="image/*" onchange="previewImage(this, 'itemPreview', 'itemPreviewImg')">
+						<div id="itemPreview" class="mt-2 d-none">
+							<img id="itemPreviewImg" src="" style="max-width:150px; height:auto;" class="img-thumbnail border">
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">카테고리 <span class="text-danger">*</span></label>
+						<select class="form-select" id="itemCategory" required>
+							<option value="ai-image">AI 이미지 제작</option>
+							<option value="card-news">카드뉴스</option>
+							<option value="detail-page">상세페이지</option>
+						</select>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">제품명(표시 이름) <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="itemName" required>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">연결 링크</label>
+						<input type="text" class="form-control" id="itemLink" placeholder="없으면 비워두세요">
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+				<button type="button" class="btn btn-primary" id="btnSaveItem">저장하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 영상 모달 -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="videoModalTitle">영상 등록</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="videoForm">
+					<input type="hidden" id="videoId">
+
+					<div class="mb-3">
+						<label class="form-label">썸네일 이미지</label>
+						<input type="file" class="form-control" id="videoFile" accept="image/*" onchange="previewImage(this, 'videoPreview', 'videoPreviewImg')">
+						<div id="videoPreview" class="mt-2 d-none">
+							<img id="videoPreviewImg" src="" style="max-width:150px; height:auto;" class="img-thumbnail border">
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">그룹 <span class="text-danger">*</span></label>
+						<select class="form-select" id="videoGroup" required>
+							<option value="product-intro">제품 소개 (가로형)</option>
+							<option value="review">제품 리뷰 (가로형)</option>
+							<option value="shortform">숏폼 콘텐츠 (세로형)</option>
+							<option value="ai-production">AI 제작 (세로형)</option>
+						</select>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">제목 <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="videoTitle" required>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">영상 링크 (유튜브 등)</label>
+						<input type="text" class="form-control" id="videoLink" placeholder="https://...">
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+				<button type="button" class="btn btn-primary" id="btnSaveVideo">저장하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let itemList = [];
+	let videoList = [];
+
+	const categoryLabel = { 'ai-image': 'AI 이미지', 'card-news': '카드뉴스', 'detail-page': '상세페이지' };
+	const groupLabel = { 'product-intro': '제품 소개', 'review': '제품 리뷰', 'shortform': '숏폼 콘텐츠', 'ai-production': 'AI 제작' };
+
+	document.addEventListener("DOMContentLoaded", function () {
+		loadItems();
+		loadVideos();
+		document.getElementById("btnSaveItem").addEventListener("click", saveItem);
+		document.getElementById("btnSaveVideo").addEventListener("click", saveVideo);
+
+		document.querySelectorAll("#portfolioTabs .nav-link").forEach(tab => {
+			tab.addEventListener("click", (e) => {
+				e.preventDefault();
+				document.querySelectorAll("#portfolioTabs .nav-link").forEach(t => t.classList.remove("active"));
+				tab.classList.add("active");
+				const target = tab.dataset.tab;
+				document.getElementById("tab-items").classList.toggle("d-none", target !== "items");
+				document.getElementById("tab-videos").classList.toggle("d-none", target !== "videos");
+			});
+		});
+	});
+
+	// ===== 이미지 항목 =====
+
+	function loadItems() {
+		fetch("/api/admin/portfolio/items")
+			.then(res => res.json())
+			.then(list => {
+				itemList = list;
+				const tbody = document.querySelector("#itemTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="5" class="text-center py-4">등록된 항목이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td>${item.imagePath ? `<img src="${item.imagePath}" style="width:50px;height:60px;object-fit:cover;" class="rounded border">` : '<div class="bg-light border rounded" style="width:50px;height:60px;"></div>'}</td>
+							<td class="align-middle">${categoryLabel[item.category] ?? item.category}</td>
+							<td class="align-middle">${item.name}</td>
+							<td class="align-middle">${item.sortOrder ?? '-'}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="openEditItemModal(${index})">수정</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	async function saveItem() {
+		const btn = document.getElementById("btnSaveItem");
+		const id = document.getElementById("itemId").value;
+		const file = document.getElementById("itemFile").files[0];
+		const name = document.getElementById("itemName").value;
+		const category = document.getElementById("itemCategory").value;
+		const linkUrl = document.getElementById("itemLink").value || null;
+
+		if (!name) { alert("이름을 입력해주세요."); return; }
+		if (!id && !file) { alert("이미지를 선택해주세요."); return; }
+
+		try {
+			btn.disabled = true; btn.innerText = "처리 중...";
+			let imagePath = null;
+
+			if (file) {
+				const presign = await fetch("/api/admin/portfolio/upload-url", {
+					method: "POST", headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ fileName: file.name })
+				}).then(res => res.json());
+				await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+				imagePath = presign.publicUrl;
+			}
+
+			const url = id ? `/api/admin/portfolio/items/${id}` : `/api/admin/portfolio/items`;
+			const method = id ? "PUT" : "POST";
+			const res = await fetch(url, {
+				method, headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ category, name, imagePath, linkUrl })
+			});
+			if (!res.ok) throw new Error("저장 실패");
+
+			alert("처리되었습니다.");
+			bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+			loadItems();
+		} catch (err) {
+			alert(err.message);
+		} finally {
+			btn.disabled = false; btn.innerText = "저장하기";
+		}
+	}
+
+	function openAddItemModal() {
+		document.getElementById("itemForm").reset();
+		document.getElementById("itemId").value = "";
+		document.getElementById("itemPreview").classList.add("d-none");
+		document.getElementById("itemModalTitle").innerText = "항목 등록";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('itemModal')).show();
+	}
+
+	function openEditItemModal(index) {
+		const item = itemList[index];
+		document.getElementById("itemId").value = item.id;
+		document.getElementById("itemCategory").value = item.category;
+		document.getElementById("itemName").value = item.name;
+		document.getElementById("itemLink").value = item.linkUrl || "";
+
+		const preview = document.getElementById("itemPreview");
+		const previewImg = document.getElementById("itemPreviewImg");
+		if (item.imagePath) { previewImg.src = item.imagePath; preview.classList.remove("d-none"); }
+		else { preview.classList.add("d-none"); }
+
+		document.getElementById("itemModalTitle").innerText = "항목 수정";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('itemModal')).show();
+	}
+
+	function deleteItem(id) {
+		if (confirm("이 항목을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/portfolio/items/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadItems(); } });
+		}
+	}
+
+	// ===== 영상 =====
+
+	function loadVideos() {
+		fetch("/api/admin/portfolio/videos")
+			.then(res => res.json())
+			.then(list => {
+				videoList = list;
+				const tbody = document.querySelector("#videoTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="5" class="text-center py-4">등록된 영상이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td>${item.thumbnailPath ? `<img src="${item.thumbnailPath}" style="width:70px;height:40px;object-fit:cover;" class="rounded border">` : '<div class="bg-light border rounded" style="width:70px;height:40px;"></div>'}</td>
+							<td class="align-middle">${groupLabel[item.groupType] ?? item.groupType}</td>
+							<td class="align-middle">${item.title}</td>
+							<td class="align-middle">${item.sortOrder ?? '-'}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="openEditVideoModal(${index})">수정</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteVideo(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	async function saveVideo() {
+		const btn = document.getElementById("btnSaveVideo");
+		const id = document.getElementById("videoId").value;
+		const file = document.getElementById("videoFile").files[0];
+		const title = document.getElementById("videoTitle").value;
+		const groupType = document.getElementById("videoGroup").value;
+		const linkUrl = document.getElementById("videoLink").value || null;
+
+		if (!title) { alert("제목을 입력해주세요."); return; }
+		if (!id && !file) { alert("썸네일을 선택해주세요."); return; }
+
+		try {
+			btn.disabled = true; btn.innerText = "처리 중...";
+			let thumbnailPath = null;
+
+			if (file) {
+				const presign = await fetch("/api/admin/portfolio/upload-url", {
+					method: "POST", headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ fileName: file.name })
+				}).then(res => res.json());
+				await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+				thumbnailPath = presign.publicUrl;
+			}
+
+			const url = id ? `/api/admin/portfolio/videos/${id}` : `/api/admin/portfolio/videos`;
+			const method = id ? "PUT" : "POST";
+			const res = await fetch(url, {
+				method, headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ groupType, title, thumbnailPath, linkUrl })
+			});
+			if (!res.ok) throw new Error("저장 실패");
+
+			alert("처리되었습니다.");
+			bootstrap.Modal.getInstance(document.getElementById('videoModal')).hide();
+			loadVideos();
+		} catch (err) {
+			alert(err.message);
+		} finally {
+			btn.disabled = false; btn.innerText = "저장하기";
+		}
+	}
+
+	function openAddVideoModal() {
+		document.getElementById("videoForm").reset();
+		document.getElementById("videoId").value = "";
+		document.getElementById("videoPreview").classList.add("d-none");
+		document.getElementById("videoModalTitle").innerText = "영상 등록";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('videoModal')).show();
+	}
+
+	function openEditVideoModal(index) {
+		const item = videoList[index];
+		document.getElementById("videoId").value = item.id;
+		document.getElementById("videoGroup").value = item.groupType;
+		document.getElementById("videoTitle").value = item.title;
+		document.getElementById("videoLink").value = item.linkUrl || "";
+
+		const preview = document.getElementById("videoPreview");
+		const previewImg = document.getElementById("videoPreviewImg");
+		if (item.thumbnailPath) { previewImg.src = item.thumbnailPath; preview.classList.remove("d-none"); }
+		else { preview.classList.add("d-none"); }
+
+		document.getElementById("videoModalTitle").innerText = "영상 수정";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('videoModal')).show();
+	}
+
+	function deleteVideo(id) {
+		if (confirm("이 영상을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/portfolio/videos/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadVideos(); } });
+		}
+	}
+
+	// ===== 공통 =====
+
+	function previewImage(input, previewId, imgId) {
+		const previewImg = document.getElementById(imgId);
+		if (input.files && input.files[0]) {
+			const reader = new FileReader();
+			reader.onload = e => {
+				previewImg.src = e.target.result;
+				document.getElementById(previewId).classList.remove("d-none");
+			}
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+</script>
+</body>
+</html>

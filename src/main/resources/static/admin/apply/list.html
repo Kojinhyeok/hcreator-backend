@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>서비스 신청 내역 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+
+<body data-page="apply-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<h1 class="h3 mb-3"><strong>서비스 신청 내역</strong></h1>
+
+				<ul class="nav nav-tabs mb-3" id="applyTabs">
+					<li class="nav-item"><a class="nav-link active" href="#" data-tab="gif">GIF 신청</a></li>
+					<li class="nav-item"><a class="nav-link" href="#" data-tab="service">상세페이지 / 블로그 / 영상</a></li>
+				</ul>
+
+				<!-- GIF 신청 -->
+				<div id="tab-gif">
+					<div class="card">
+						<div class="table-responsive">
+							<table class="table table-hover my-0" id="gifTable">
+								<thead>
+								<tr>
+									<th>접수일시</th>
+									<th>회사명</th>
+									<th>담당자</th>
+									<th>연락처</th>
+									<th style="width:130px;">관리</th>
+								</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<!-- 상세페이지/블로그/영상 신청 -->
+				<div id="tab-service" class="d-none">
+					<div class="card">
+						<div class="table-responsive">
+							<table class="table table-hover my-0" id="serviceTable">
+								<thead>
+								<tr>
+									<th>접수일시</th>
+									<th style="width:110px;">구분</th>
+									<th>회사명</th>
+									<th>담당자</th>
+									<th>연락처</th>
+									<th style="width:130px;">관리</th>
+								</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<!-- 상세보기 모달 (공용, 내용만 채워넣음) -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">신청 상세</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body detail-view" id="detailBody"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let gifList = [];
+	let serviceList = [];
+
+	const serviceTypeLabel = { 'detail-page': '상세페이지', 'blog': '블로그', 'video': '영상' };
+
+	document.addEventListener("DOMContentLoaded", function () {
+		loadGif();
+		loadService();
+
+		document.querySelectorAll("#applyTabs .nav-link").forEach(tab => {
+			tab.addEventListener("click", (e) => {
+				e.preventDefault();
+				document.querySelectorAll("#applyTabs .nav-link").forEach(t => t.classList.remove("active"));
+				tab.classList.add("active");
+				const target = tab.dataset.tab;
+				document.getElementById("tab-gif").classList.toggle("d-none", target !== "gif");
+				document.getElementById("tab-service").classList.toggle("d-none", target !== "service");
+			});
+		});
+	});
+
+	function formatDate(dateStr) {
+		return dateStr ? dateStr.replace('T', ' ').substring(0, 16) : '-';
+	}
+
+	// ===== GIF 신청 =====
+
+	function loadGif() {
+		fetch("/api/admin/apply/gif")
+			.then(res => res.json())
+			.then(list => {
+				gifList = list;
+				const tbody = document.querySelector("#gifTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="5" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td class="align-middle">${formatDate(item.createdAt)}</td>
+							<td class="align-middle">${item.companyName ?? ''}</td>
+							<td class="align-middle">${item.contactName ?? ''}</td>
+							<td class="align-middle">${item.contactPhone ?? ''}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="viewGif(${index})">보기</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteGif(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	function viewGif(index) {
+		const item = gifList[index];
+		const rowsHtml = (item.rows || []).map(r => `
+			<tr>
+				<td>${r.reportNo ?? ''}</td>
+				<td>${r.testItem ?? ''}</td>
+				<td>${r.templateNo ?? ''}</td>
+				<td>${r.subjectNo ?? ''}</td>
+			</tr>
+		`).join("") || '<tr><td colspan="4" class="text-center text-muted">등록된 행 없음</td></tr>';
+
+		document.getElementById("detailBody").innerHTML = `
+			<dl class="row mb-0">
+				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
+				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
+				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
+				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
+				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
+				<dt class="col-sm-3">포인트컬러</dt><dd class="col-sm-9">${item.pointColor ?? '-'}</dd>
+				<dt class="col-sm-3">배경색</dt><dd class="col-sm-9">${item.bgColor ?? '-'}</dd>
+				<dt class="col-sm-3">배경 효과</dt><dd class="col-sm-9">${item.bgEffect ?? '-'}</dd>
+				<dt class="col-sm-3">용량</dt><dd class="col-sm-9">${item.quantity ?? '-'}</dd>
+				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.filePath ? `<a href="${item.filePath}" target="_blank">파일 보기</a>` : '-'}</dd>
+				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
+			</dl>
+			<hr>
+			<h6>신청 목록</h6>
+			<table class="table table-sm table-bordered">
+				<thead><tr><th>보고서 번호</th><th>시험 항목</th><th>템플릿 번호</th><th>피험자 번호</th></tr></thead>
+				<tbody>${rowsHtml}</tbody>
+			</table>
+		`;
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
+	}
+
+	function deleteGif(id) {
+		if (confirm("이 신청 내역을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/apply/gif/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadGif(); } });
+		}
+	}
+
+	// ===== 상세페이지/블로그/영상 신청 =====
+
+	function loadService() {
+		fetch("/api/admin/apply/service")
+			.then(res => res.json())
+			.then(list => {
+				serviceList = list;
+				const tbody = document.querySelector("#serviceTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="6" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td class="align-middle">${formatDate(item.createdAt)}</td>
+							<td class="align-middle">${serviceTypeLabel[item.serviceType] ?? item.serviceType}</td>
+							<td class="align-middle">${item.companyName ?? ''}</td>
+							<td class="align-middle">${item.contactName ?? ''}</td>
+							<td class="align-middle">${item.contactPhone ?? ''}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="viewService(${index})">보기</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteService(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	function viewService(index) {
+		const item = serviceList[index];
+		let extraRows = '';
+
+		if (item.serviceType === 'detail-page') {
+			extraRows = `
+				<dt class="col-sm-3">제품명</dt><dd class="col-sm-9">${item.productName ?? '-'}</dd>
+				<dt class="col-sm-3">출시 예정일</dt><dd class="col-sm-9">${item.launchDate ?? '-'}</dd>
+				<dt class="col-sm-3">제품컷 촬영</dt><dd class="col-sm-9">${item.needsShooting ?? '-'}</dd>
+				<dt class="col-sm-3">기획안 유무</dt><dd class="col-sm-9">${item.hasPlan ?? '-'}</dd>
+				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
+			`;
+		} else if (item.serviceType === 'blog') {
+			extraRows = `
+				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${item.brandName ?? '-'}</dd>
+				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.attachmentPath ? `<a href="${item.attachmentPath}" target="_blank">파일 보기</a>` : '-'}</dd>
+				<dt class="col-sm-3">홍보 내용</dt><dd class="col-sm-9">${item.promoContent ?? '-'}</dd>
+				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
+			`;
+		} else if (item.serviceType === 'video') {
+			extraRows = `
+				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${item.brandName ?? '-'}</dd>
+				<dt class="col-sm-3">영상 형식</dt><dd class="col-sm-9">${item.videoFormat ?? '-'}</dd>
+				<dt class="col-sm-3">영상 내용</dt><dd class="col-sm-9">${item.videoContent ?? '-'}</dd>
+				<dt class="col-sm-3">요청사항</dt><dd class="col-sm-9">${item.requestNote ?? '-'}</dd>
+			`;
+		}
+
+		document.getElementById("detailBody").innerHTML = `
+			<dl class="row mb-0">
+				<dt class="col-sm-3">구분</dt><dd class="col-sm-9">${serviceTypeLabel[item.serviceType] ?? item.serviceType}</dd>
+				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
+				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
+				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
+				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
+				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
+				${extraRows}
+			</dl>
+		`;
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
+	}
+
+	function deleteService(id) {
+		if (confirm("이 신청 내역을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/apply/service/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadService(); } });
+		}
+	}
+</script>
+</body>
+</html>

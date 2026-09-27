@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>서비스 문의 내역 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+
+<body data-page="inquiry-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<h1 class="h3 mb-3"><strong>서비스 문의 내역</strong></h1>
+
+				<div class="card">
+					<div class="table-responsive">
+						<table class="table table-hover my-0" id="inquiryTable">
+							<thead>
+							<tr>
+								<th>접수일시</th>
+								<th style="width:110px;">문의 서비스</th>
+								<th>제목</th>
+								<th>회사명</th>
+								<th>담당자</th>
+								<th style="width:130px;">관리</th>
+							</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">문의 상세</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body detail-view" id="detailBody"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let inquiryList = [];
+
+	const inquiryServiceLabel = {
+		'gif': '임상 GIF', 'product': '제품 촬영', 'detail-page': '상세페이지',
+		'blog': '블로그 마케팅', 'video': '영상 제작', 'voucher': '수출바우처', 'etc': '기타 문의'
+	};
+
+	document.addEventListener("DOMContentLoaded", loadInquiries);
+
+	function formatDate(dateStr) {
+		return dateStr ? dateStr.replace('T', ' ').substring(0, 16) : '-';
+	}
+
+	function loadInquiries() {
+		fetch("/api/admin/inquiry")
+			.then(res => res.json())
+			.then(list => {
+				inquiryList = list;
+				const tbody = document.querySelector("#inquiryTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="6" class="text-center py-4">접수된 문의가 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td class="align-middle">${formatDate(item.createdAt)}</td>
+							<td class="align-middle">${inquiryServiceLabel[item.inquiryService] ?? item.inquiryService}</td>
+							<td class="align-middle">${item.title ?? ''}</td>
+							<td class="align-middle">${item.companyName ?? ''}</td>
+							<td class="align-middle">${item.contactName ?? ''}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="viewInquiry(${index})">보기</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteInquiry(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	function viewInquiry(index) {
+		const item = inquiryList[index];
+		document.getElementById("detailBody").innerHTML = `
+			<dl class="row mb-0">
+				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
+				<dt class="col-sm-3">문의 서비스</dt><dd class="col-sm-9">${inquiryServiceLabel[item.inquiryService] ?? item.inquiryService}</dd>
+				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
+				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
+				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
+				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
+				<dt class="col-sm-3">제목</dt><dd class="col-sm-9">${item.title ?? '-'}</dd>
+				<dt class="col-sm-3">내용</dt><dd class="col-sm-9" style="white-space:pre-wrap;">${item.content ?? '-'}</dd>
+				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.attachmentPath ? `<a href="${item.attachmentPath}" target="_blank">파일 보기</a>` : '-'}</dd>
+			</dl>
+		`;
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
+	}
+
+	function deleteInquiry(id) {
+		if (confirm("이 문의를 삭제하시겠습니까?")) {
+			fetch(`/api/admin/inquiry/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadInquiries(); } });
+		}
+	}
+</script>
+</body>
+</html>

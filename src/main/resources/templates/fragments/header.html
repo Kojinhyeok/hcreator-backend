@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header class="header" th:fragment="header">
+  <div class="header__inner">
+    <a href="/" class="logo">
+      <img th:src="@{/images/logo-horizontal.png}" alt="H CREATOR" class="logo__img">
+    </a>
+    <nav class="nav">
+      <a href="/about"     th:classappend="${activeNav == 'about'} ? 'is-active'">회사소개</a>
+      <a href="/clinical"  th:classappend="${activeNav == 'clinical'} ? 'is-active'">임상시험</a>
+      <a href="/marketing" th:classappend="${activeNav == 'marketing'} ? 'is-active'">마케팅서비스</a>
+      <a href="/voucher"   th:classappend="${activeNav == 'voucher'} ? 'is-active'">수출바우처</a>
+      <a href="/portfolio" th:classappend="${activeNav == 'portfolio'} ? 'is-active'">포트폴리오</a>
+      <a href="/support"   th:classappend="${activeNav == 'support'} ? 'is-active'">서비스지원</a>
+    </nav>
+  </div>
+</header>
+
+</body>
+</html>

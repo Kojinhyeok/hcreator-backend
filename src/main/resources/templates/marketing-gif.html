@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>임상 GIF 제작 | H CREATOR</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/sub.css}">
+</head>
+<body>
+
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <section class="service-hero">
+    <div class="service-hero__inner">
+      <p class="service-hero__label">G I F</p>
+      <h1 class="service-hero__title">임상 GIF 제작</h1>
+      <p class="service-hero__desc">복잡한 임상 데이터를 소비자가 한 눈에 이해할 수 있는 콘텐츠로 제작합니다.</p>
+    </div>
+  </section>
+
+  <section class="steps">
+    <div class="steps__inner">
+      <div class="steps__step">
+        <span class="steps__num">STEP 1</span>
+        <span class="steps__label">임상시험 진행</span>
+      </div>
+      <span class="steps__arrow">→</span>
+      <div class="steps__step">
+        <span class="steps__num">STEP 2</span>
+        <span class="steps__label">보고서 수령</span>
+      </div>
+      <span class="steps__arrow">→</span>
+      <div class="steps__step">
+        <span class="steps__num">STEP 3</span>
+        <span class="steps__label">GIF 신청</span>
+      </div>
+      <span class="steps__arrow">→</span>
+      <div class="steps__step">
+        <span class="steps__num">STEP 4</span>
+        <span class="steps__label">GIF 수령</span>
+      </div>
+    </div>
+  </section>
+  <section class="gif-gallery">
+    <div class="gif-gallery__inner">
+      <h2 class="gif-gallery__title">GIF 템플릿</h2>
+      <p class="gif-gallery__desc">데이터, 모션, 컬러 이미지로 신뢰도 높은 비주얼 콘텐츠를 제작합니다.</p>
+      <div class="gif-gallery__grid">
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 01</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 02</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 03</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 04</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 05</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 06</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 07</span>
+          </div>
+        </div>
+        <div class="gif-gallery__item">
+          <div class="gif-gallery__thumb">
+            <span class="gif-gallery__label">템플릿 08</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="notice">
+    <div class="notice__inner">
+      <h2 class="notice__title">GIF 신청 시 주의사항</h2>
+      <ul class="notice__list">
+        <li>모든 GIF는 템플릿의 배경 및 효과에 맞춰 제작되므로, 신청 전 세부 항목을 반드시 확인해 주세요.</li>
+        <li>GIF는 기본으로 고화질(고용량)로 제공하며 원본 파일(편집 파일)은 제공되지 않습니다.</li>
+        <li>GIF는 용량으로 제작되며 용량 축소는 제작 전 요청 시에만 가능합니다.</li>
+        <li>피험자 번호 미기입 시, 개선율이 가장 높은 피험자 사진으로 임의 제작됩니다.</li>
+        <li>수정 요청은 1개당 1회에 한해 가능하며 이후 요청 시 별도의 비용이 발생됩니다.</li>
+        <li>레이아웃을 변경해야 되는 작업은 불가합니다. (디자인, 움직임 효과 변경 등)</li>
+        <li>제품 컷이 포함된 템플릿 선택 시, 누끼 컷 파일을 함께 전달해 주세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="about-cta">
+    <div class="about-cta__inner">
+      <img th:src="@{/images/logo-icon.png}" alt="H CREATOR" class="about-cta__logo">
+      <p class="about-cta__text">임상 결과를 GIF 콘텐츠로 만나보세요</p>
+      <a href="/support" class="about-cta__link">신청하기 →</a>
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

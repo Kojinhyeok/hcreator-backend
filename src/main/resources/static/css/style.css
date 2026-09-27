@@ -1,0 +1,139 @@
+:root {
+  --content-max-width: 1400px;
+
+  /* 섹션 세로 패딩 — 화면폭에 따라 가변 */
+  --pad-section-sm: clamp(52px, 7vw, 72px);    /* 기존 48px */
+  --pad-section: clamp(60px, 8vw, 88px);       /* 기존 56px */
+  --pad-section-lg: clamp(68px, 9vw, 104px);   /* 기존 64px */
+  --pad-hero: clamp(80px, 10vw, 120px);        /* 기존 80px */
+
+  --color-purple-900: #26215C;
+  --color-purple-600: #534AB7;
+  --color-purple-200: #AFA9EC;
+  --color-purple-tint-text: #CECBF6;
+  --color-purple-bg-light: #F3F2FC;
+
+  /* 액센트 — 로고 시안 */
+  --color-accent: #0ACDE4;       /* 어두운 배경/도형 전용 (흰 배경 1.93:1 미달) */
+  --color-accent-deep: #056A76;  /* 흰 배경 텍스트용, 동일 H186 S92% (6.31:1) */
+
+  /* 타입 스케일 — 본문 17px 기준, 디스플레이는 화면폭에 따라 가변 */
+  --fs-xs: 13px;                        /* 표 헤더, 보조 링크 (최소) */
+  --fs-sm: 15px;                        /* 라벨, 메타, 캡션 */
+  --fs-base: 17px;                      /* 본문, 입력 요소 */
+  --fs-md: 20px;                        /* 리드문, 소제목 */
+  --fs-lg: clamp(20px, 2.2vw, 24px);    /* 카드 제목 */
+  --fs-xl: clamp(24px, 3vw, 30px);      /* 섹션 제목 */
+  --fs-2xl: clamp(27px, 3.9vw, 36px);   /* 서브페이지 제목 */
+  --fs-3xl: clamp(30px, 4.6vw, 44px);   /* 메인 히어로 */
+
+  --color-white: #FFFFFF;
+  --color-text: #1A1A1A;
+  --color-text-secondary: #5F5E5A;
+  --color-border: #E5E5E5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--color-text);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  min-width: 320px;
+  padding-top: 80px; /* 고정 헤더 높이만큼 확보 (14+50+14+1px 테두리) */
+}
+
+/* 헤더 */
+/* 헤더 (화면 상단에 고정, 항상 화이트 배경) */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 14px 0;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header__inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo__img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+
+.nav {
+  display: flex;
+  gap: 24px;
+}
+
+.nav a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.nav a:hover {
+  color: var(--color-purple-600);
+}
+
+/* 현재 보고 있는 페이지 */
+.nav a.is-active {
+  color: var(--color-purple-600);
+  border-bottom-color: var(--color-purple-600);
+}
+
+/* 푸터 */
+.footer {
+  padding: 28px 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.footer__inner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+.footer__inner a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.footer__inner a:hover {
+  color: var(--color-purple-600);
+}
+
+/* 모바일 대응 (공통) */
+@media (max-width: 768px) {
+  .header__inner .nav {
+    display: none; /* 모바일 메뉴는 추후 별도 작업 */
+  }
+}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="사진 자리 (임시)">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#26215C"/>
+      <stop offset="55%" stop-color="#3D349A"/>
+      <stop offset="100%" stop-color="#534AB7"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="46%" r="52%">
+      <stop offset="0%" stop-color="#0ACDE4" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#0ACDE4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="800" cy="414" r="430" fill="url(#glow)"/>
+
+  <!-- 장식 도형 -->
+  <circle cx="190" cy="180" r="120" fill="#FFFFFF" opacity="0.04"/>
+  <circle cx="1430" cy="760" r="170" fill="#0ACDE4" opacity="0.06"/>
+  <rect x="1300" y="120" width="150" height="150" rx="34" fill="#0ACDE4" opacity="0.10"/>
+
+  <!-- 사진 아이콘 -->
+  <g transform="translate(800 400)">
+    <rect x="-150" y="-112" width="300" height="224" rx="26"
+          fill="none" stroke="#0ACDE4" stroke-width="11"/>
+    <circle cx="-64" cy="-44" r="27" fill="#0ACDE4"/>
+    <path d="M-150 66 L-44 -18 L34 46 L88 6 L150 56 L150 86 A26 26 0 0 1 124 112 L-124 112 A26 26 0 0 1 -150 86 Z"
+          fill="#0ACDE4"/>
+  </g>
+
+  <!-- 라벨 -->
+  <text x="800" y="596" text-anchor="middle" fill="#0ACDE4"
+        font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif"
+        font-size="30" font-weight="700" letter-spacing="9">ABOUT PHOTO</text>
+  <text x="800" y="650" text-anchor="middle" fill="#FFFFFF" opacity="0.62"
+        font-family="-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif"
+        font-size="26">사진 자리 · 임시 이미지</text>
+  <text x="800" y="716" text-anchor="middle" fill="#FFFFFF" opacity="0.32"
+        font-family="ui-monospace, SFMono-Regular, Menlo, monospace"
+        font-size="21" letter-spacing="3">1600 × 900  (16:9)</text>
+</svg>

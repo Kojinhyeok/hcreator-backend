@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마케팅서비스 | H CREATOR</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/sub.css}">
+</head>
+<body>
+
+  <div th:replace="~{fragments/header :: header}"></div>
+
+  <section class="about-hero">
+    <div class="about-hero__inner">
+      <p class="about-hero__label">MARKETING SERVICE</p>
+      <h1 class="about-hero__title">임상 결과를, 팔리는 콘텐츠로</h1>
+      <p class="about-hero__lead">GIF부터 상세페이지, 영상까지 필요한 콘텐츠를 한번에.</p>
+    </div>
+  </section>
+
+  <section class="marketing-grid">
+    <div class="marketing-grid__inner">
+      <a href="/marketing/gif" class="marketing-tile">
+        <span class="marketing-tile__title">임상 GIF</span>
+        <span class="marketing-tile__desc">복잡한 임상 데이터를 한눈에 이해할 수 있는 콘텐츠로</span>
+      </a>
+      <a href="/marketing/product" class="marketing-tile">
+        <span class="marketing-tile__title">제품 촬영</span>
+        <span class="marketing-tile__desc">제품컷·제형컷 촬영부터 AI 비주얼 확장까지</span>
+      </a>
+      <a href="/marketing/detail-page" class="marketing-tile">
+        <span class="marketing-tile__title">상세페이지</span>
+        <span class="marketing-tile__desc">기획부터 디자인, 표시광고법 검토까지</span>
+      </a>
+      <a href="/marketing/blog" class="marketing-tile">
+        <span class="marketing-tile__title">블로그 마케팅</span>
+        <span class="marketing-tile__desc">키워드 분석부터 콘텐츠 발행까지</span>
+      </a>
+      <a href="/marketing/video" class="marketing-tile">
+        <span class="marketing-tile__title">영상 제작</span>
+        <span class="marketing-tile__desc">브랜드 분석부터 촬영, AI 편집까지</span>
+      </a>
+    </div>
+  </section>
+
+  <div th:replace="~{fragments/footer :: footer}"></div>
+
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

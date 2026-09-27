@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>GIF 템플릿 관리 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+
+<body data-page="gif-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h1 class="h3 mb-0"><strong>GIF 템플릿 관리</strong></h1>
+					<button class="btn btn-primary" onclick="openAddModal()">
+						<i class="align-middle" data-feather="plus"></i> 템플릿 등록
+					</button>
+				</div>
+
+				<div class="card">
+					<div class="table-responsive">
+						<table class="table table-hover my-0" id="gifTable">
+							<thead>
+							<tr>
+								<th style="width:80px;">미리보기</th>
+								<th>제목</th>
+								<th style="width:100px;">순서</th>
+								<th style="width:130px;">관리</th>
+							</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<div class="modal fade" id="gifModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalTitle">템플릿 등록</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="gifForm">
+					<input type="hidden" id="itemId">
+
+					<div class="mb-3">
+						<label class="form-label">템플릿 이미지</label>
+						<input type="file" class="form-control" id="gifFile" accept="image/*" onchange="previewImage(this)">
+						<div id="thumbnailPreview" class="mt-2 d-none">
+							<img id="previewImg" src="" style="max-width:200px; height:auto;" class="img-thumbnail border">
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">템플릿 이름 <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="title" required placeholder="예: 템플릿 01">
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+				<button type="button" class="btn btn-primary" id="btnSave">저장하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let gifList = [];
+
+	document.addEventListener("DOMContentLoaded", function () {
+		loadItems();
+		document.getElementById("btnSave").addEventListener("click", saveItem);
+	});
+
+	function loadItems() {
+		fetch("/api/admin/gif")
+			.then(res => res.json())
+			.then(list => {
+				gifList = list;
+				const tbody = document.querySelector("#gifTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="4" class="text-center py-4">등록된 템플릿이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td>
+								${item.imagePath
+									? `<img src="${item.imagePath}" style="width:50px; height:50px; object-fit:cover;" class="rounded border">`
+									: `<div class="bg-light text-center rounded border" style="width:50px; height:50px; line-height:50px; font-size:10px;">No Image</div>`}
+							</td>
+							<td class="align-middle">${item.title}</td>
+							<td class="align-middle">${item.sortOrder ?? '-'}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	async function saveItem() {
+		const btn = document.getElementById("btnSave");
+		const id = document.getElementById("itemId").value;
+		const fileInput = document.getElementById("gifFile");
+		const file = fileInput.files[0];
+		const title = document.getElementById("title").value;
+
+		if (!title) { alert("템플릿 이름을 입력해주세요."); return; }
+		if (!id && !file) { alert("이미지를 선택해주세요."); return; }
+
+		try {
+			btn.disabled = true;
+			btn.innerText = "처리 중...";
+
+			let imagePath = null;
+
+			if (file) {
+				const presign = await fetch("/api/admin/gif/upload-url", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ fileName: file.name })
+				}).then(res => res.json());
+
+				await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+				imagePath = presign.publicUrl;
+			}
+
+			const url = id ? `/api/admin/gif/${id}` : `/api/admin/gif`;
+			const method = id ? "PUT" : "POST";
+
+			const response = await fetch(url, {
+				method: method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ title, imagePath })
+			});
+			if (!response.ok) throw new Error("저장 실패");
+
+			alert("처리되었습니다.");
+			bootstrap.Modal.getInstance(document.getElementById('gifModal')).hide();
+			loadItems();
+		} catch (err) {
+			alert(err.message);
+		} finally {
+			btn.disabled = false;
+			btn.innerText = "저장하기";
+		}
+	}
+
+	function previewImage(input) {
+		const previewImg = document.getElementById("previewImg");
+		if (input.files && input.files[0]) {
+			const reader = new FileReader();
+			reader.onload = e => {
+				previewImg.src = e.target.result;
+				document.getElementById("thumbnailPreview").classList.remove("d-none");
+			}
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+
+	function openAddModal() {
+		document.getElementById("gifForm").reset();
+		document.getElementById("itemId").value = "";
+		document.getElementById("thumbnailPreview").classList.add("d-none");
+		document.getElementById("modalTitle").innerText = "템플릿 등록";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('gifModal')).show();
+	}
+
+	function openEditModal(index) {
+		const item = gifList[index];
+		document.getElementById("itemId").value = item.id;
+		document.getElementById("title").value = item.title;
+
+		const previewImg = document.getElementById("previewImg");
+		if (item.imagePath) {
+			previewImg.src = item.imagePath;
+			document.getElementById("thumbnailPreview").classList.remove("d-none");
+		} else {
+			document.getElementById("thumbnailPreview").classList.add("d-none");
+		}
+
+		document.getElementById("modalTitle").innerText = "템플릿 수정";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('gifModal')).show();
+	}
+
+	function deleteItem(id) {
+		if (confirm("이 템플릿을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/gif/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadItems(); } });
+		}
+	}
+</script>
+</body>
+</html>
