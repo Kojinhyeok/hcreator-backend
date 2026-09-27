@@ -7,6 +7,7 @@
 	<title>GIF 템플릿 관리 - H CREATOR</title>
 	<link href="../css/app.css" rel="stylesheet">
 	<link href="../css/custom.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.snow.min.css" rel="stylesheet">
 </head>
 
 <body data-page="gif-list" data-base="../">
@@ -45,7 +46,7 @@
 </div>
 
 <div class="modal fade" id="gifModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title" id="modalTitle">템플릿 등록</h5>
@@ -67,6 +68,11 @@
 						<label class="form-label">템플릿 이름 <span class="text-danger">*</span></label>
 						<input type="text" class="form-control" id="title" required placeholder="예: 템플릿 01">
 					</div>
+
+					<div class="mb-3">
+						<label class="form-label">상세 내용</label>
+						<div id="quillEditor" style="height: 300px; background:#fff;"></div>
+					</div>
 				</form>
 			</div>
 			<div class="modal-footer">
@@ -79,13 +85,56 @@
 
 <script src="../js/app.js"></script>
 <script src="../js/common.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.min.js"></script>
 <script>
 	let gifList = [];
+	let quill;
 
 	document.addEventListener("DOMContentLoaded", function () {
+		quill = new Quill('#quillEditor', {
+			theme: 'snow',
+			modules: {
+				toolbar: {
+					container: [
+						[{ header: [1, 2, 3, false] }],
+						['bold', 'italic', 'underline'],
+						['image'],
+						['clean']
+					],
+					handlers: { image: quillImageHandler }
+				}
+			}
+		});
+
 		loadItems();
 		document.getElementById("btnSave").addEventListener("click", saveItem);
 	});
+
+	function quillImageHandler() {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/*';
+		input.onchange = async () => {
+			const file = input.files[0];
+			if (!file) return;
+			try {
+				const presign = await fetch("/api/admin/gif/upload-url", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ fileName: file.name })
+				}).then(res => res.json());
+
+				await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+
+				const range = quill.getSelection(true);
+				quill.insertEmbed(range.index, 'image', presign.publicUrl);
+				quill.setSelection(range.index + 1);
+			} catch (err) {
+				alert('이미지 업로드에 실패했습니다.');
+			}
+		};
+		input.click();
+	}
 
 	function loadItems() {
 		fetch("/api/admin/gif")
@@ -119,6 +168,7 @@
 		const fileInput = document.getElementById("gifFile");
 		const file = fileInput.files[0];
 		const title = document.getElementById("title").value;
+		const detailContent = quill.root.innerHTML;
 
 		if (!title) { alert("템플릿 이름을 입력해주세요."); return; }
 		if (!id && !file) { alert("이미지를 선택해주세요."); return; }
@@ -146,7 +196,7 @@
 			const response = await fetch(url, {
 				method: method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ title, imagePath })
+				body: JSON.stringify({ title, imagePath, detailContent })
 			});
 			if (!response.ok) throw new Error("저장 실패");
 
@@ -178,6 +228,7 @@
 		document.getElementById("itemId").value = "";
 		document.getElementById("thumbnailPreview").classList.add("d-none");
 		document.getElementById("modalTitle").innerText = "템플릿 등록";
+		quill.setContents([]);
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('gifModal')).show();
 	}
 
@@ -193,6 +244,8 @@
 		} else {
 			document.getElementById("thumbnailPreview").classList.add("d-none");
 		}
+
+		quill.root.innerHTML = item.detailContent || '';
 
 		document.getElementById("modalTitle").innerText = "템플릿 수정";
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('gifModal')).show();

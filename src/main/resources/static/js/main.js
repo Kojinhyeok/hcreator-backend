@@ -347,3 +347,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+// ===== GIF 템플릿 상세 모달 (지연 로딩) =====
+document.addEventListener('DOMContentLoaded', () => {
+  const items = document.querySelectorAll('.gif-gallery__item[data-id]');
+  const modal = document.getElementById('gifDetailModal');
+  if (!items.length || !modal) return; // 이 페이지에 갤러리가 없으면 종료
+
+  const backdrop = document.getElementById('gifDetailBackdrop');
+  const closeBtn = document.getElementById('gifDetailClose');
+  const body = document.getElementById('gifDetailBody');
+
+  function openModal() {
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  function loadDetail(id) {
+    body.innerHTML = '<p class="gif-detail-modal__loading">불러오는 중...</p>';
+    openModal();
+
+    fetch(`/api/gif/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('load failed');
+        return res.json();
+      })
+      .then((data) => {
+        const content = data.detailContent && data.detailContent.trim()
+          ? data.detailContent
+          : '<p>등록된 상세 내용이 없습니다.</p>';
+        body.innerHTML = `<h2>${data.title ?? ''}</h2>${content}`;
+      })
+      .catch(() => {
+        body.innerHTML = '<p class="gif-detail-modal__loading">불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>';
+      });
+  }
+
+  items.forEach((item) => {
+    item.addEventListener('click', () => {
+      const id = item.dataset.id;
+      if (id) loadDetail(id);
+    });
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+  });
+});

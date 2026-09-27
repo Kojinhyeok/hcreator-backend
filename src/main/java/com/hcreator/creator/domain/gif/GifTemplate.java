@@ -20,4 +20,7 @@ public class GifTemplate {
     private String imagePath;
 
     private Integer sortOrder;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String detailContent;
 }
