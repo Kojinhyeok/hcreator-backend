@@ -326,3 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ===== 모바일 헤더 메뉴 =====
+document.addEventListener('DOMContentLoaded', () => {
+  const menuBtn = document.getElementById('mobileMenuBtn');
+  const mobileNav = document.getElementById('mobileNav');
+  if (!menuBtn || !mobileNav) return;
+
+  menuBtn.addEventListener('click', () => {
+    const isOpen = mobileNav.classList.toggle('is-open');
+    menuBtn.classList.toggle('is-active', isOpen);
+    menuBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  mobileNav.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      mobileNav.classList.remove('is-open');
+      menuBtn.classList.remove('is-active');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
+});

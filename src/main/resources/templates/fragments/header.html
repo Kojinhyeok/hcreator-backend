@@ -8,14 +8,25 @@
       <img th:src="@{/images/logo-horizontal.png}" alt="H CREATOR" class="logo__img">
     </a>
     <nav class="nav">
-      <a href="/about"     th:classappend="${activeNav == 'about'} ? 'is-active'">회사소개</a>
-      <a href="/clinical"  th:classappend="${activeNav == 'clinical'} ? 'is-active'">임상시험</a>
-      <a href="/marketing" th:classappend="${activeNav == 'marketing'} ? 'is-active'">마케팅서비스</a>
-      <a href="/voucher"   th:classappend="${activeNav == 'voucher'} ? 'is-active'">수출바우처</a>
-      <a href="/portfolio" th:classappend="${activeNav == 'portfolio'} ? 'is-active'">포트폴리오</a>
-      <a href="/support"   th:classappend="${activeNav == 'support'} ? 'is-active'">서비스지원</a>
+      <a href="/about">회사소개</a>
+      <a href="/clinical">임상시험</a>
+      <a href="/marketing">마케팅서비스</a>
+      <a href="/voucher">수출바우처</a>
+      <a href="/portfolio">포트폴리오</a>
+      <a href="/support">서비스지원</a>
     </nav>
+    <button type="button" class="header__menu-btn" id="mobileMenuBtn" aria-label="메뉴 열기" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="/about">회사소개</a>
+    <a href="/clinical">임상시험</a>
+    <a href="/marketing">마케팅서비스</a>
+    <a href="/voucher">수출바우처</a>
+    <a href="/portfolio">포트폴리오</a>
+    <a href="/support">서비스지원</a>
+  </nav>
 </header>
 
 </body>
