@@ -95,13 +95,14 @@
 			theme: 'snow',
 			modules: {
 				toolbar: {
-					container: [
-						[{ header: [1, 2, 3, false] }],
-						['bold', 'italic', 'underline'],
-						['image'],
-						['clean']
-					],
-					handlers: { image: quillImageHandler }
+				container: [
+					[{ header: [1, 2, 3, false] }],
+					['bold', 'italic', 'underline'],
+					[{ align: [] }],
+					['image'],
+					['clean']
+				],
+				handlers: { image: quillImageHandler }
 				}
 			}
 		});
