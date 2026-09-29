@@ -93,7 +93,8 @@ public class S3Service {
             long originalSize = Files.size(inputPath);
     
             ProcessBuilder pb = new ProcessBuilder(
-                    GIFSICLE_PATH, "--optimize=3", "--lossy=80", "--colors", "128",
+                    GIFSICLE_PATH, "--optimize=3", "--lossy=200", "--colors", "32",
+                    "--resize-width", "600",
                     inputPath.toString(), "-o", outputPath.toString()
             );
             pb.redirectErrorStream(true);
