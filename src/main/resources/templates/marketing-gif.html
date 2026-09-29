@@ -49,7 +49,7 @@
       <div class="gif-gallery__grid" th:if="${not #lists.isEmpty(gifTemplates)}">
         <div class="gif-gallery__item" th:each="template : ${gifTemplates}" th:attr="data-id=${template.id}">
           <div class="gif-gallery__thumb">
-            <img th:src="@{${template.imagePath}}" th:alt="${template.title}">
+            <img th:src="@{${template.imagePath}}" th:alt="${template.title}" loading="lazy" decoding="async">
             <span class="gif-gallery__label" th:text="${template.title}">템플릿 이름</span>
           </div>
         </div>

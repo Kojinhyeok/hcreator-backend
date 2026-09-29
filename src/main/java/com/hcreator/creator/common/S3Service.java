@@ -26,11 +26,9 @@ public class S3Service {
     @Value("${aws.s3.region}")
     private String region;
 
-    /**
-     * 업로드용 presigned URL 발급.
-     * folder 예: "gif-templates", "portfolio"
-     * 반환: uploadUrl(프론트가 PUT할 주소), fileKey(저장할 최종 경로), publicUrl(완료 후 접근 URL)
-     */
+    @Value("${aws.cloudfront.domain}")
+    private String cloudfrontDomain;
+
     public PresignedUploadResult createUploadUrl(String folder, String originalFileName) {
         String extension = "";
         int dotIndex = originalFileName.lastIndexOf('.');
@@ -51,7 +49,7 @@ public class S3Service {
 
         PresignedPutObjectRequest presigned = s3Presigner.presignPutObject(presignRequest);
 
-        String publicUrl = String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, fileKey);
+        String publicUrl = String.format("https://%s/%s", cloudfrontDomain, fileKey);
 
         return new PresignedUploadResult(presigned.url().toString(), fileKey, publicUrl);
     }
