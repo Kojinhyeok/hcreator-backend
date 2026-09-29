@@ -4,6 +4,8 @@ import com.hcreator.creator.common.S3Service;
 import com.hcreator.creator.repository.gif.GifTemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,11 @@ public class GifAdminController {
     public S3Service.PresignedUploadResult getUploadUrl(@RequestBody Map<String, String> body) {
         String fileName = body.get("fileName");
         return s3Service.createUploadUrl("gif-templates", fileName);
+    }
+
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public S3Service.PresignedUploadResult upload(@RequestParam("file") MultipartFile file) throws java.io.IOException {
+        return s3Service.uploadWithGifCompression(file, "gif-templates");
     }
 
     // 2. S3 업로드 완료 후, DB에 최종 저장
