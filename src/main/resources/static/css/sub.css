@@ -936,6 +936,12 @@
   gap: 6px 10px;
   padding: 10px 12px;
   background: var(--color-purple-900);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gif-gallery__thumb:hover .gif-gallery__label {
+  opacity: 1;
 }
 
 .gif-gallery__label-item {
@@ -948,15 +954,6 @@
   white-space: nowrap;
 }
 
-.gif-gallery__label-item::before {
-  content: "✔";
-  color: var(--color-accent);
-  font-weight: 700;
-}
-
-.gif-gallery__thumb:hover .gif-gallery__label {
-  opacity: 1;
-}
 
 .gif-gallery__thumb {
   cursor: pointer;
