@@ -930,15 +930,28 @@
   right: 0;
   bottom: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  padding: 12px;
-  background: rgba(38, 33, 92, 0.75);
+  gap: 6px 10px;
+  padding: 10px 12px;
+  background: var(--color-purple-900);
+}
+
+.gif-gallery__label-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--color-white);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   font-weight: 600;
-  white-space: pre-line;   /* 줄바꿈 반영 (3-3과 연결) */
+  white-space: nowrap;
+}
+
+.gif-gallery__label-item::before {
+  content: "✔";
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 .gif-gallery__thumb:hover .gif-gallery__label {

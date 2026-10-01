@@ -401,3 +401,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') closeModal();
   });
 });
+
+// ===== GIF 라벨 — 줄바꿈 기준으로 체크마크 뱃지화 =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.gif-gallery__label').forEach((label) => {
+    const lines = label.textContent
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) return;
+
+    label.innerHTML = lines
+      .map((line) => `<span class="gif-gallery__label-item">${line}</span>`)
+      .join('');
+  });
+});
