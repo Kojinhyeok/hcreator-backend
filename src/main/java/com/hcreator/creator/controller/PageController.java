@@ -124,9 +124,4 @@ public class PageController {
         return "redirect:/admin/index.html";
     }
 
-    private List<PortfolioVideo> filterByGroup(List<PortfolioVideo> videos, String group) {
-        return videos.stream()
-                .filter(v -> group.equals(v.getGroupType()))
-                .collect(Collectors.toList());
-    }
 }
