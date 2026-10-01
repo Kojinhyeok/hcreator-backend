@@ -64,7 +64,7 @@
 }
 
 .services__item {
-  padding: 40px 32px;
+  padding: var(--pad-section) 32px;  /* 기존: 40px 32px */
   border-right: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
 }

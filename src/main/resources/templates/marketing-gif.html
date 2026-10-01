@@ -42,6 +42,23 @@
       </div>
     </div>
   </section>
+
+  <!-- 이달의 GIF (관리자가 "이달의 GIF로 노출" 체크한 템플릿만 모여서 보임, 클릭 모달 없음) -->
+  <section class="gif-gallery" th:if="${not #lists.isEmpty(featuredGifTemplates)}">
+    <div class="gif-gallery__inner">
+      <h2 class="gif-gallery__title">이달의 GIF</h2>
+      <p class="gif-gallery__desc">이달 새롭게 추가된 GIF 템플릿을 확인해보세요.</p>
+      <div class="gif-gallery__grid">
+        <div class="gif-gallery__item" th:each="template : ${featuredGifTemplates}">
+          <div class="gif-gallery__thumb">
+            <img th:src="@{${template.imagePath}}" th:alt="${template.title}" loading="lazy" decoding="async">
+            <span class="gif-gallery__label" th:text="${template.title}">템플릿 이름</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="gif-gallery">
     <div class="gif-gallery__inner">
       <h2 class="gif-gallery__title">GIF 템플릿</h2>
@@ -54,7 +71,7 @@
           </div>
         </div>
       </div>
-      
+
       <p class="gif-gallery__empty" th:if="${#lists.isEmpty(gifTemplates)}">
         아직 등록된 템플릿이 없습니다.
       </p>

@@ -1,4 +1,4 @@
-package com.hcreator.creator.domain.gif;
+package com.hcreator.creator.domain.section;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,21 +9,21 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GifTemplate {
+public class ServiceDetailSection {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 30)
+    private String pageType; // "product" / "detail-page" / "blog" / "video"
+
     private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
 
     private String imagePath;
 
     private Integer sortOrder;
-
-    @Column(columnDefinition = "LONGTEXT")
-    private String detailContent;
-
-    @Column(nullable = false)
-    private Boolean featured = false;
 }

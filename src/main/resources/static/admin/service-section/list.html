@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>서비스 상세 콘텐츠 관리 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+</head>
+
+<body data-page="service-section-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<h1 class="h3 mb-3"><strong>서비스 상세 콘텐츠 관리</strong></h1>
+
+				<ul class="nav nav-tabs mb-3" id="sectionTabs">
+					<li class="nav-item"><a class="nav-link active" href="#" data-type="product">제품촬영</a></li>
+					<li class="nav-item"><a class="nav-link" href="#" data-type="detail-page">상세페이지</a></li>
+					<li class="nav-item"><a class="nav-link" href="#" data-type="blog">블로그 마케팅</a></li>
+					<li class="nav-item"><a class="nav-link" href="#" data-type="video">영상 제작</a></li>
+				</ul>
+
+				<!-- 상세페이지 탭일 때만 노출되는 첨부파일(기획안 다운로드) 관리 카드 -->
+				<div class="card mb-3" id="attachmentCard" style="display:none;">
+					<div class="card-body">
+						<h6 class="mb-3">페이지 첨부파일 (예: 기획안 다운로드)</h6>
+						<div id="attachmentInfo" class="mb-2 text-muted small">등록된 첨부파일이 없습니다.</div>
+						<div class="row g-2 align-items-end">
+							<div class="col-auto">
+								<label class="form-label mb-1">버튼 텍스트</label>
+								<input type="text" class="form-control" id="attachmentLabel" placeholder="예: 기획안 다운로드" style="width:220px;">
+							</div>
+							<div class="col-auto">
+								<label class="form-label mb-1">파일 선택</label>
+								<input type="file" class="form-control" id="attachmentFile">
+							</div>
+							<div class="col-auto">
+								<button class="btn btn-primary" onclick="saveAttachment()">저장</button>
+							</div>
+							<div class="col-auto">
+								<button class="btn btn-outline-danger" onclick="deleteAttachment()">삭제</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="d-flex justify-content-end mb-3">
+					<button class="btn btn-primary" onclick="openAddModal()">
+						<i class="align-middle" data-feather="plus"></i> 행 추가
+					</button>
+				</div>
+
+				<div class="card">
+					<div class="table-responsive">
+						<table class="table table-hover my-0" id="sectionTable">
+							<thead>
+							<tr>
+								<th style="width:80px;">이미지</th>
+								<th>제목</th>
+								<th style="width:100px;">순서</th>
+								<th style="width:130px;">관리</th>
+							</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<div class="modal fade" id="sectionModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalTitle">행 등록</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<form id="sectionForm">
+					<input type="hidden" id="itemId">
+
+					<div class="mb-3">
+						<label class="form-label">이미지</label>
+						<input type="file" class="form-control" id="sectionFile" accept="image/*" onchange="previewImage(this)">
+						<div id="thumbnailPreview" class="mt-2 d-none">
+							<img id="previewImg" src="" style="max-width:200px; height:auto;" class="img-thumbnail border">
+						</div>
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">제목 <span class="text-danger">*</span></label>
+						<input type="text" class="form-control" id="title" required placeholder="예: 제품컷 촬영">
+					</div>
+
+					<div class="mb-3">
+						<label class="form-label">내용</label>
+						<textarea class="form-control" id="content" rows="5" placeholder="엔터로 줄바꿈 입력 가능"></textarea>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+				<button type="button" class="btn btn-primary" id="btnSave">저장하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let itemList = [];
+	let currentType = "product";
+
+	document.addEventListener("DOMContentLoaded", function () {
+		loadItems();
+		document.getElementById("btnSave").addEventListener("click", saveItem);
+
+		document.querySelectorAll("#sectionTabs .nav-link").forEach(tab => {
+			tab.addEventListener("click", (e) => {
+				e.preventDefault();
+				document.querySelectorAll("#sectionTabs .nav-link").forEach(t => t.classList.remove("active"));
+				tab.classList.add("active");
+				currentType = tab.dataset.type;
+				loadItems();
+
+				// 상세페이지 탭일 때만 첨부파일 카드 노출
+				document.getElementById("attachmentCard").style.display = (currentType === "detail-page") ? "block" : "none";
+				if (currentType === "detail-page") loadAttachment();
+			});
+		});
+	});
+
+	function loadItems() {
+		fetch(`/api/admin/service-section?pageType=${currentType}`)
+			.then(res => res.json())
+			.then(list => {
+				itemList = list;
+				const tbody = document.querySelector("#sectionTable tbody");
+				tbody.innerHTML = list.length === 0
+					? '<tr><td colspan="4" class="text-center py-4">등록된 행이 없습니다.</td></tr>'
+					: list.map((item, index) => `
+						<tr>
+							<td>${item.imagePath ? `<img src="${item.imagePath}" style="width:50px;height:50px;object-fit:cover;" class="rounded border">` : '<div class="bg-light border rounded" style="width:50px;height:50px;"></div>'}</td>
+							<td class="align-middle" style="white-space: pre-line;">${item.title}</td>
+							<td class="align-middle">${item.sortOrder ?? '-'}</td>
+							<td class="align-middle">
+								<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
+								<button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})">삭제</button>
+							</td>
+						</tr>
+					`).join("");
+			});
+	}
+
+	async function saveItem() {
+		const btn = document.getElementById("btnSave");
+		const id = document.getElementById("itemId").value;
+		const file = document.getElementById("sectionFile").files[0];
+		const title = document.getElementById("title").value;
+		const content = document.getElementById("content").value;
+
+		if (!title) { alert("제목을 입력해주세요."); return; }
+		if (!id && !file) { alert("이미지를 선택해주세요."); return; }
+
+		try {
+			btn.disabled = true;
+			btn.innerText = "처리 중...";
+
+			let imagePath = null;
+			if (file) {
+				const presign = await fetch("/api/admin/service-section/upload-url", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ fileName: file.name })
+				}).then(res => res.json());
+
+				await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+				imagePath = presign.publicUrl;
+			}
+
+			const url = id ? `/api/admin/service-section/${id}` : `/api/admin/service-section`;
+			const method = id ? "PUT" : "POST";
+
+			const response = await fetch(url, {
+				method,
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ pageType: currentType, title, content, imagePath })
+			});
+			if (!response.ok) throw new Error("저장 실패");
+
+			alert("처리되었습니다.");
+			bootstrap.Modal.getInstance(document.getElementById('sectionModal')).hide();
+			loadItems();
+		} catch (err) {
+			alert(err.message);
+		} finally {
+			btn.disabled = false;
+			btn.innerText = "저장하기";
+		}
+	}
+
+	function previewImage(input) {
+		const previewImg = document.getElementById("previewImg");
+		if (input.files && input.files[0]) {
+			const reader = new FileReader();
+			reader.onload = e => {
+				previewImg.src = e.target.result;
+				document.getElementById("thumbnailPreview").classList.remove("d-none");
+			}
+			reader.readAsDataURL(input.files[0]);
+		}
+	}
+
+	function openAddModal() {
+		document.getElementById("sectionForm").reset();
+		document.getElementById("itemId").value = "";
+		document.getElementById("thumbnailPreview").classList.add("d-none");
+		document.getElementById("modalTitle").innerText = "행 등록";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('sectionModal')).show();
+	}
+
+	function openEditModal(index) {
+		const item = itemList[index];
+		document.getElementById("itemId").value = item.id;
+		document.getElementById("title").value = item.title;
+		document.getElementById("content").value = item.content || "";
+
+		const previewImg = document.getElementById("previewImg");
+		if (item.imagePath) {
+			previewImg.src = item.imagePath;
+			document.getElementById("thumbnailPreview").classList.remove("d-none");
+		} else {
+			document.getElementById("thumbnailPreview").classList.add("d-none");
+		}
+
+		document.getElementById("modalTitle").innerText = "행 수정";
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('sectionModal')).show();
+	}
+
+	function deleteItem(id) {
+		if (confirm("이 행을 삭제하시겠습니까?")) {
+			fetch(`/api/admin/service-section/${id}`, { method: "DELETE" })
+				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadItems(); } });
+		}
+	}
+
+	// ===== 페이지 첨부파일 (상세페이지 전용: 기획안 다운로드) =====
+
+	function loadAttachment() {
+		fetch("/api/admin/page-attachment?pageType=detail-page")
+			.then(res => res.ok ? res.json() : null)
+			.then(data => {
+				const info = document.getElementById("attachmentInfo");
+				if (data && data.filePath) {
+					info.innerHTML = `현재 파일: <a href="${data.filePath}" target="_blank">${data.fileName ?? '다운로드'}</a>`;
+					document.getElementById("attachmentLabel").value = data.label ?? "기획안 다운로드";
+				} else {
+					info.innerText = "등록된 첨부파일이 없습니다.";
+					document.getElementById("attachmentLabel").value = "기획안 다운로드";
+				}
+			});
+	}
+
+	async function saveAttachment() {
+		const file = document.getElementById("attachmentFile").files[0];
+		const label = document.getElementById("attachmentLabel").value || "기획안 다운로드";
+
+		let filePath = null, fileName = null;
+		if (file) {
+			const presign = await fetch("/api/admin/page-attachment/upload-url", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ fileName: file.name })
+			}).then(res => res.json());
+
+			await fetch(presign.uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type } });
+			filePath = presign.publicUrl;
+			fileName = file.name;
+		}
+
+		await fetch("/api/admin/page-attachment", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ pageType: "detail-page", label, filePath, fileName })
+		});
+
+		alert("저장되었습니다.");
+		document.getElementById("attachmentFile").value = "";
+		loadAttachment();
+	}
+
+	function deleteAttachment() {
+		if (confirm("첨부파일을 삭제하시겠습니까?")) {
+			fetch("/api/admin/page-attachment?pageType=detail-page", { method: "DELETE" })
+				.then(() => { alert("삭제되었습니다."); loadAttachment(); });
+		}
+	}
+</script>
+</body>
+</html>

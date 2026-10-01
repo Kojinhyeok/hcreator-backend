@@ -2,17 +2,18 @@
    회사소개 - 사진 (독립 섹션)
 =========================================================== */
 .about-photo {
-  padding: 0;
+  padding: var(--pad-section) 24px 0;
 }
 
 .about-photo__inner {
-  max-width: none;
-  margin: 0;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .about-photo__media {
   margin: 0;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1600 / 600;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--color-purple-900);
 }
@@ -460,8 +461,9 @@
 }
 
 .detail-row__desc {
-  font-size: var(--fs-base);
+  font-size: var(--fs-md);
   color: var(--color-text-secondary);
+  white-space: pre-line;   /* 추가: textarea에서 입력한 Enter가 그대로 줄바꿈으로 */
 }
 
 .detail-row__media {
@@ -908,7 +910,7 @@
 
 .gif-gallery__thumb {
   position: relative;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;   /* 기존 1 / 1 */
   border-radius: 8px;
   background: var(--color-purple-bg-light);
   border: 1px solid var(--color-border);
@@ -924,18 +926,19 @@
 
 .gif-gallery__label {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 12px;
-  background: rgba(38, 33, 92, 0.7);
+  background: rgba(38, 33, 92, 0.75);
   color: var(--color-white);
   font-size: var(--fs-sm);
   font-weight: 600;
-  opacity: 0;
-  transition: opacity 0.2s;
+  white-space: pre-line;   /* 줄바꿈 반영 (3-3과 연결) */
 }
 
 .gif-gallery__thumb:hover .gif-gallery__label {

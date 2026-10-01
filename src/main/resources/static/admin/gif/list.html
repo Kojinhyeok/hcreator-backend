@@ -73,7 +73,12 @@
 
 					<div class="mb-3">
 						<label class="form-label">템플릿 이름 <span class="text-danger">*</span></label>
-						<input type="text" class="form-control" id="title" required placeholder="예: 템플릿 01">
+						<textarea class="form-control" id="title" rows="3" required placeholder="예: ✔️주름&#10;✔️탄력&#10;✔️피부결"></textarea>
+					</div>
+
+					<div class="mb-3 form-check">
+						<input type="checkbox" class="form-check-input" id="featured">
+						<label class="form-check-label" for="featured">이달의 GIF로 노출</label>
 					</div>
 
 					<div class="mb-3">
@@ -159,7 +164,10 @@
 									? `<img src="${item.imagePath}" style="width:50px; height:50px; object-fit:cover;" class="rounded border">`
 									: `<div class="bg-light text-center rounded border" style="width:50px; height:50px; line-height:50px; font-size:10px;">No Image</div>`}
 							</td>
-							<td class="align-middle">${item.title}</td>
+							<td class="align-middle" style="white-space: pre-line;">
+								${item.title}
+								${item.featured ? '<span class="badge bg-warning text-dark ms-1">이달의 GIF</span>' : ''}
+							</td>
 							<td class="align-middle">${item.sortOrder ?? '-'}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
@@ -176,6 +184,7 @@
 		const fileInput = document.getElementById("gifFile");
 		const file = fileInput.files[0];
 		const title = document.getElementById("title").value;
+		const featured = document.getElementById("featured").checked;
 		const detailContent = quill.root.innerHTML;
 
 		if (!title) { alert("템플릿 이름을 입력해주세요."); return; }
@@ -204,7 +213,7 @@
 			const response = await fetch(url, {
 				method: method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ title, imagePath, detailContent })
+				body: JSON.stringify({ title, imagePath, detailContent, featured })
 			});
 			if (!response.ok) throw new Error("저장 실패");
 
@@ -234,6 +243,7 @@
 	function openAddModal() {
 		document.getElementById("gifForm").reset();
 		document.getElementById("itemId").value = "";
+		document.getElementById("featured").checked = false;
 		document.getElementById("thumbnailPreview").classList.add("d-none");
 		document.getElementById("modalTitle").innerText = "템플릿 등록";
 		quill.setContents([]);
@@ -244,6 +254,7 @@
 		const item = gifList[index];
 		document.getElementById("itemId").value = item.id;
 		document.getElementById("title").value = item.title;
+		document.getElementById("featured").checked = !!item.featured;
 
 		const previewImg = document.getElementById("previewImg");
 		if (item.imagePath) {

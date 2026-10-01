@@ -21,6 +21,8 @@ public class PageController {
     private final GifTemplateRepository gifTemplateRepository;
     private final PortfolioItemRepository portfolioItemRepository;
     private final PortfolioVideoRepository portfolioVideoRepository;
+    private final com.hcreator.creator.domain.section.ServiceDetailSectionRepository serviceDetailSectionRepository;
+    private final com.hcreator.creator.domain.section.PageAttachmentRepository pageAttachmentRepository;
 
     @GetMapping("/")
     public String index() {
@@ -44,28 +46,33 @@ public class PageController {
 
     @GetMapping("/marketing/gif")
     public String marketingGif(Model model) {
-        List<GifTemplate> gifTemplates = gifTemplateRepository.findAllByOrderBySortOrderAsc();
-        model.addAttribute("gifTemplates", gifTemplates);
+        model.addAttribute("featuredGifTemplates", gifTemplateRepository.findByFeaturedTrueOrderBySortOrderAsc());
+        model.addAttribute("gifTemplates", gifTemplateRepository.findByFeaturedFalseOrderBySortOrderAsc());
         return "marketing-gif";
     }
 
     @GetMapping("/marketing/product")
-    public String marketingProduct() {
+    public String marketingProduct(Model model) {
+        model.addAttribute("sections", serviceDetailSectionRepository.findByPageTypeOrderBySortOrderAsc("product"));
         return "marketing-product";
     }
 
     @GetMapping("/marketing/detail-page")
-    public String marketingDetailPage() {
+    public String marketingDetailPage(Model model) {
+        model.addAttribute("sections", serviceDetailSectionRepository.findByPageTypeOrderBySortOrderAsc("detail-page"));
+        model.addAttribute("attachment", pageAttachmentRepository.findByPageType("detail-page").orElse(null));
         return "marketing-detail-page";
     }
 
     @GetMapping("/marketing/blog")
-    public String marketingBlog() {
+    public String marketingBlog(Model model) {
+        model.addAttribute("sections", serviceDetailSectionRepository.findByPageTypeOrderBySortOrderAsc("blog"));
         return "marketing-blog";
     }
 
     @GetMapping("/marketing/video")
-    public String marketingVideo() {
+    public String marketingVideo(Model model) {
+        model.addAttribute("sections", serviceDetailSectionRepository.findByPageTypeOrderBySortOrderAsc("video"));
         return "marketing-video";
     }
 

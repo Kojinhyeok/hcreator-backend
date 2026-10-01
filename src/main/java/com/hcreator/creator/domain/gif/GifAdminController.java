@@ -16,7 +16,7 @@ import java.util.Map;
 public class GifAdminController {
 
     private final GifTemplateRepository gifTemplateRepository;
-    public record GifTemplateCreateRequest(String title, String imagePath, String detailContent) {}
+    public record GifTemplateCreateRequest(String title, String imagePath, String detailContent, Boolean featured) {}
     private final S3Service s3Service;
 
     // 1. 업로드용 presigned URL 요청
@@ -38,6 +38,7 @@ public class GifAdminController {
         template.setTitle(request.title());
         template.setImagePath(request.imagePath());
         template.setDetailContent(request.detailContent());
+        template.setFeatured(Boolean.TRUE.equals(request.featured()));
 
         Integer maxOrder = gifTemplateRepository.findAllByOrderBySortOrderAsc()
                 .stream()
@@ -79,6 +80,7 @@ public class GifAdminController {
             template.setImagePath(request.imagePath());
         }
         template.setDetailContent(request.detailContent());
+        template.setFeatured(Boolean.TRUE.equals(request.featured()));
         return gifTemplateRepository.save(template);
     }
 
