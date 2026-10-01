@@ -83,15 +83,23 @@ public class PageController {
 
     @GetMapping("/portfolio")
     public String portfolio(Model model) {
-        List<PortfolioItem> items = portfolioItemRepository.findAllByOrderBySortOrderAsc();
-        List<PortfolioVideo> videos = portfolioVideoRepository.findAllByOrderBySortOrderAsc();
+        model.addAttribute("aiImageItems", portfolioItemRepository.findByCategoryOrderByCreatedAtDesc("ai-image"));
 
-        // 영상은 그룹별로 나눠서 넘김 (product-intro / review / shortform / ai-production)
-        model.addAttribute("portfolioItems", items);
-        model.addAttribute("productIntroVideos", filterByGroup(videos, "product-intro"));
-        model.addAttribute("reviewVideos", filterByGroup(videos, "review"));
-        model.addAttribute("shortformVideos", filterByGroup(videos, "shortform"));
-        model.addAttribute("aiProductionVideos", filterByGroup(videos, "ai-production"));
+        List<PortfolioItem> cardNews = portfolioItemRepository.findByCategoryOrderByCreatedAtDesc("card-news");
+        model.addAttribute("cardNewsBasic", cardNews.stream().filter(i -> !"square".equals(i.getCardNewsLayout())).toList());
+        model.addAttribute("cardNewsSquare", cardNews.stream().filter(i -> "square".equals(i.getCardNewsLayout())).toList());
+
+        model.addAttribute("detailPageItems", portfolioItemRepository.findByCategoryOrderByCreatedAtDesc("detail-page"));
+
+        model.addAttribute("promoShort", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("product-promo", "숏폼형"));
+        model.addAttribute("promoHorizontal", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("product-promo", "가로형"));
+        model.addAttribute("aiDrama", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("ai-production", "AI 드라마"));
+        model.addAttribute("aiAnimation", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("ai-production", "애니메이션"));
+        model.addAttribute("aiAdLaw", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("ai-production", "표시광고법"));
+        model.addAttribute("brandShort", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("brand", "숏폼형"));
+        model.addAttribute("brandHorizontal", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("brand", "가로형"));
+        model.addAttribute("viralShort", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("viral", "숏폼형"));
+        model.addAttribute("reviewHorizontal", portfolioVideoRepository.findByCategoryAndSubLabelOrderByCreatedAtDesc("review", "가로형"));
 
         return "portfolio";
     }

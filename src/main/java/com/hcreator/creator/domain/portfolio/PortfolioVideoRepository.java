@@ -4,5 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface PortfolioVideoRepository extends JpaRepository<PortfolioVideo, Long> {
-    List<PortfolioVideo> findAllByOrderBySortOrderAsc();
+    List<PortfolioVideo> findByCategoryAndSubLabelOrderByCreatedAtDesc(String category, String subLabel);
 }

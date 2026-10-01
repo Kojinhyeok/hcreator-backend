@@ -30,6 +30,13 @@ public class GifApplication {
     @Column(columnDefinition = "TEXT")
     private String etcNote;
 
+    @Column(length = 20)
+    @Builder.Default
+    private String status = "대기중"; // 대기중 / 작업중 / 전달완료
+
+    @Column(columnDefinition = "TEXT")
+    private String memo; // 내부 직원용 코멘트
+
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<GifApplicationRow> rows = new ArrayList<>();

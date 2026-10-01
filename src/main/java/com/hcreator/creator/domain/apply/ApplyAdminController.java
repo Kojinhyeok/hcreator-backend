@@ -22,6 +22,17 @@ public class ApplyAdminController {
         return gifApplicationRepository.findAllWithRows();
     }
 
+    public record GifStatusRequest(String status, String memo) {}
+
+    @PutMapping("/gif/{id}")
+    public GifApplication updateGif(@PathVariable Long id, @RequestBody GifStatusRequest req) {
+        GifApplication application = gifApplicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("신청 내역을 찾을 수 없습니다."));
+        if (req.status() != null) application.setStatus(req.status());
+        if (req.memo() != null) application.setMemo(req.memo());
+        return gifApplicationRepository.save(application);
+    }
+
     @DeleteMapping("/gif/{id}")
     public void deleteGif(@PathVariable Long id) {
         gifApplicationRepository.deleteById(id);

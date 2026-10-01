@@ -1,72 +1,57 @@
-// ===== 포트폴리오 필터/검색 =====
+// ===== 포트폴리오 - 탭/서브탭 전환 + 이미지 모달 =====
 document.addEventListener('DOMContentLoaded', () => {
   const tabs = document.querySelectorAll('.portfolio__tab');
-  const searchInput = document.querySelector('.portfolio__search');
-  const grid = document.querySelector('.portfolio__grid');
-  const items = document.querySelectorAll('.portfolio__item');
-  const emptyMsg = document.querySelector('.portfolio__empty');
-  const videoGroups = document.querySelector('.portfolio__video-groups');
-  const videoGroupList = document.querySelectorAll('.portfolio__video-group');
-
   if (!tabs.length) return; // 포트폴리오 페이지가 아니면 아무것도 안 함
-
-  let activeFilter = 'all';
-
-  function applyFilters() {
-    const keyword = searchInput.value.trim().toLowerCase();
-
-    if (activeFilter === 'video') {
-      grid.style.display = 'none';
-      emptyMsg.hidden = true;
-      videoGroups.classList.add('is-visible');
-
-      videoGroupList.forEach((group) => {
-        const cardsInGroup = group.querySelectorAll('.portfolio__video-card');
-        let visibleInGroup = 0;
-        cardsInGroup.forEach((card) => {
-          const match = card.dataset.name.toLowerCase().includes(keyword);
-          card.style.display = match ? '' : 'none';
-          if (match) visibleInGroup++;
-        });
-        group.classList.toggle('is-hidden', visibleInGroup === 0);
-      });
-      return;
-    }
-
-    grid.style.display = '';
-    videoGroups.classList.remove('is-visible');
-
-    let visibleCount = 0;
-    items.forEach((item) => {
-      const matchesCategory = activeFilter === 'all' || item.dataset.category === activeFilter;
-      const matchesKeyword = item.dataset.name.toLowerCase().includes(keyword);
-      const show = matchesCategory && matchesKeyword;
-      item.classList.toggle('is-hidden', !show);
-      if (show) visibleCount++;
-    });
-    emptyMsg.hidden = visibleCount > 0;
-  }
 
   tabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       tabs.forEach((t) => t.classList.remove('is-active'));
       tab.classList.add('is-active');
-      activeFilter = tab.dataset.filter;
-      applyFilters();
+      const target = tab.dataset.panel;
+      document.querySelectorAll('.portfolio__panel').forEach((panel) => {
+        panel.classList.toggle('is-active', panel.dataset.panel === target);
+      });
     });
   });
 
-  searchInput.addEventListener('input', applyFilters);
-
-  // 전체 탭의 영상 카드를 누르면 "영상" 탭으로 전환하고 해당 구역으로 이동
-  document.querySelectorAll('.portfolio__item--video').forEach((item) => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const videoTab = document.querySelector('.portfolio__tab[data-filter="video"]');
-      if (videoTab) videoTab.click();
-      const target = document.getElementById(item.dataset.target);
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const subtabs = document.querySelectorAll('.portfolio__subtab');
+  subtabs.forEach((subtab) => {
+    subtab.addEventListener('click', () => {
+      subtabs.forEach((t) => t.classList.remove('is-active'));
+      subtab.classList.add('is-active');
+      const target = subtab.dataset.sub;
+      document.querySelectorAll('.portfolio__subpanel').forEach((panel) => {
+        panel.classList.toggle('is-active', panel.dataset.sub === target);
+      });
     });
+  });
+
+  // 이미지 확대 모달 (AI이미지 / 카드뉴스 / 상세페이지 공용)
+  const modal = document.getElementById('portfolioModal');
+  const modalImg = document.getElementById('portfolioModalImg');
+  const modalName = document.getElementById('portfolioModalName');
+  const modalBackdrop = document.getElementById('portfolioModalBackdrop');
+  const modalClose = document.getElementById('portfolioModalClose');
+
+  document.querySelectorAll('.portfolio__card').forEach((card) => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      modalImg.src = card.dataset.img;
+      modalName.textContent = card.dataset.name || '';
+      modal.classList.add('is-open');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  modalBackdrop.addEventListener('click', closeModal);
+  modalClose.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
   });
 });
 
@@ -79,6 +64,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const fieldsets = applyForm.querySelectorAll('[data-fieldset]');
   const gifTableBody = document.getElementById('gifRequestTableBody');
   const addGifRowBtn = document.getElementById('addGifRow');
+
+  // 신청 완료 팝업
+  const applySuccessModal = document.getElementById('applySuccessModal');
+  const applySuccessBackdrop = document.getElementById('applySuccessBackdrop');
+  const applySuccessClose = document.getElementById('applySuccessClose');
+
+  function openSuccessModal() {
+    applySuccessModal.classList.add('is-open');
+  }
+
+  function closeSuccessModal() {
+    applySuccessModal.classList.remove('is-open');
+  }
+
+  if (applySuccessBackdrop) applySuccessBackdrop.addEventListener('click', closeSuccessModal);
+  if (applySuccessClose) applySuccessClose.addEventListener('click', closeSuccessModal);
 
   function getSelectedServiceType() {
     const checked = applyForm.querySelector('input[name="serviceType"]:checked');
@@ -207,8 +208,8 @@ document.addEventListener('DOMContentLoaded', () => {
       contactPhone: form.contactPhone.value,
       contactEmail: form.contactEmail.value,
       productName: serviceType === 'detail-page'
-      ? (form.productName?.value || null)
-      : (form.productNameAlt?.value || null),
+        ? (form.productName?.value || null)
+        : (form.productNameAlt?.value || null),
       brandName: form.brandName?.value || null,
       launchDate: form.launchDate?.value || null,
       needsShooting: form.needsShooting?.value || null,
@@ -245,11 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         await submitServiceApplication(applyForm, serviceType);
       }
-      resultMsg.textContent = '신청이 접수되었습니다. 확인 후 연락드리겠습니다.';
-      resultMsg.className = 'apply-form__result is-success';
-      resultMsg.style.display = 'block';
       applyForm.reset();
       updateVisibleFields(getSelectedServiceType());
+      openSuccessModal();
     } catch (err) {
       resultMsg.textContent = '전송에 실패했습니다. 잠시 후 다시 시도해주세요.';
       resultMsg.className = 'apply-form__result is-error';

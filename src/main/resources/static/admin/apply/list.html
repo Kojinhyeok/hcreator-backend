@@ -31,11 +31,13 @@
 							<table class="table table-hover my-0" id="gifTable">
 								<thead>
 								<tr>
-									<th>접수일시</th>
+									<th style="width:60px;">번호</th>
+									<th style="width:140px;">접수일시</th>
 									<th>회사명</th>
 									<th>담당자</th>
 									<th>연락처</th>
-									<th style="width:130px;">관리</th>
+									<th style="width:110px;">상태</th>
+									<th style="width:150px;">관리</th>
 								</tr>
 								</thead>
 								<tbody></tbody>
@@ -120,15 +122,18 @@
 			.then(res => res.json())
 			.then(list => {
 				gifList = list;
+				const total = list.length;
 				const tbody = document.querySelector("#gifTable tbody");
 				tbody.innerHTML = list.length === 0
-					? '<tr><td colspan="5" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
+					? '<tr><td colspan="7" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
 					: list.map((item, index) => `
 						<tr>
+							<td class="align-middle">${total - index}</td>
 							<td class="align-middle">${formatDate(item.createdAt)}</td>
 							<td class="align-middle">${item.companyName ?? ''}</td>
 							<td class="align-middle">${item.contactName ?? ''}</td>
 							<td class="align-middle">${item.contactPhone ?? ''}</td>
+							<td class="align-middle">${statusBadge(item.status)}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="viewGif(${index})">보기</button>
 								<button class="btn btn-sm btn-outline-danger" onclick="deleteGif(${item.id})">삭제</button>
@@ -136,6 +141,12 @@
 						</tr>
 					`).join("");
 			});
+	}
+
+	function statusBadge(status) {
+		const map = { '대기중': 'secondary', '작업중': 'warning', '전달완료': 'success' };
+		const color = map[status] ?? 'secondary';
+		return `<span class="badge bg-${color}">${status ?? '대기중'}</span>`;
 	}
 
 	function viewGif(index) {
@@ -165,12 +176,46 @@
 			</dl>
 			<hr>
 			<h6>신청 목록</h6>
-			<table class="table table-sm table-bordered">
+			<table class="table table-sm table-bordered mb-4">
 				<thead><tr><th>보고서 번호</th><th>시험 항목</th><th>템플릿 번호</th><th>피험자 번호</th></tr></thead>
 				<tbody>${rowsHtml}</tbody>
 			</table>
+			<hr>
+			<div class="row g-2">
+				<div class="col-sm-4">
+					<label class="form-label">상태</label>
+					<select class="form-select" id="gifStatusSelect">
+						<option value="대기중" ${item.status === '대기중' || !item.status ? 'selected' : ''}>대기중</option>
+						<option value="작업중" ${item.status === '작업중' ? 'selected' : ''}>작업중</option>
+						<option value="전달완료" ${item.status === '전달완료' ? 'selected' : ''}>전달완료</option>
+					</select>
+				</div>
+				<div class="col-sm-8">
+					<label class="form-label">메모 (내부용)</label>
+					<textarea class="form-control" id="gifMemoInput" rows="2">${item.memo ?? ''}</textarea>
+				</div>
+			</div>
+			<div class="text-end mt-3">
+				<button class="btn btn-primary btn-sm" onclick="saveGifStatus(${item.id})">상태/메모 저장</button>
+			</div>
 		`;
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
+	}
+
+	function saveGifStatus(id) {
+		const status = document.getElementById("gifStatusSelect").value;
+		const memo = document.getElementById("gifMemoInput").value;
+
+		fetch(`/api/admin/apply/gif/${id}`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ status, memo })
+		}).then(res => {
+			if (res.ok) {
+				alert("저장되었습니다.");
+				loadGif();
+			}
+		});
 	}
 
 	function deleteGif(id) {

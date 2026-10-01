@@ -84,6 +84,16 @@
                     <th></th>
                 </tr>
                 </thead>
+                <tbody>
+                <tr class="apply-form__table-example">
+                    <td>예시</td>
+                    <td>HM-P26-0011</td>
+                    <td>겉 피부 보습 개선</td>
+                    <td>BnA-13</td>
+                    <td>9번</td>
+                    <td></td>
+                </tr>
+                </tbody>
                 <tbody id="gifRequestTableBody">
                 <tr>
                     <td class="apply-form__table-num">1</td>
@@ -102,11 +112,17 @@
         <div class="apply-form__row apply-form__row--split">
             <div class="apply-form__group">
             <label class="apply-form__label" for="pointColor">포인트컬러</label>
-            <input type="text" id="pointColor" name="pointColor" class="apply-form__input" placeholder="예: #534AB7">
+            <div class="apply-form__color">
+              <input type="color" id="pointColorPicker" value="#534AB7" onchange="document.getElementById('pointColor').value = this.value;">
+              <input type="text" id="pointColor" name="pointColor" class="apply-form__input" placeholder="예: #534AB7" value="#534AB7" oninput="document.getElementById('pointColorPicker').value = this.value;">
+            </div>
             </div>
             <div class="apply-form__group">
             <label class="apply-form__label" for="bgColor">배경색</label>
-            <input type="text" id="bgColor" name="bgColor" class="apply-form__input" placeholder="예: #FFFFFF">
+            <div class="apply-form__color">
+              <input type="color" id="bgColorPicker" value="#FFFFFF" onchange="document.getElementById('bgColor').value = this.value;">
+              <input type="text" id="bgColor" name="bgColor" class="apply-form__input" placeholder="예: #FFFFFF" value="#FFFFFF" oninput="document.getElementById('bgColorPicker').value = this.value;">
+            </div>
             </div>
         </div>
 
@@ -253,6 +269,17 @@
         <button type="submit" class="apply-form__submit">신청하기</button>
         <p id="applyResultMsg" class="apply-form__result" style="display:none;"></p>
       </form>
+
+      <!-- 신청 완료 팝업 -->
+      <div class="apply-modal" id="applySuccessModal">
+        <div class="apply-modal__backdrop" id="applySuccessBackdrop"></div>
+        <div class="apply-modal__panel">
+          <div class="apply-modal__icon">✓</div>
+          <p class="apply-modal__title">신청이 접수되었습니다</p>
+          <p class="apply-modal__desc">확인 후 입력하신 연락처로 연락드리겠습니다.</p>
+          <button type="button" class="apply-modal__btn" id="applySuccessClose">확인</button>
+        </div>
+      </div>
 
     </div>
   </section>

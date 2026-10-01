@@ -22,128 +22,139 @@
   <section class="portfolio">
     <div class="portfolio__inner">
 
-      <div class="portfolio__controls">
-        <div class="portfolio__tabs">
-          <button class="portfolio__tab is-active" data-filter="all">전체</button>
-          <button class="portfolio__tab" data-filter="ai-image">AI 이미지 제작</button>
-          <button class="portfolio__tab" data-filter="card-news">카드뉴스</button>
-          <button class="portfolio__tab" data-filter="detail-page">상세페이지</button>
-          <button class="portfolio__tab" data-filter="video">영상</button>
-        </div>
-        <input type="text" class="portfolio__search" placeholder="제품명으로 검색">
+      <div class="portfolio__tabs">
+        <button class="portfolio__tab is-active" data-panel="ai-image">AI 이미지</button>
+        <button class="portfolio__tab" data-panel="card-news">카드뉴스</button>
+        <button class="portfolio__tab" data-panel="detail-page">상세페이지</button>
+        <button class="portfolio__tab" data-panel="video">영상</button>
       </div>
 
-      <div class="portfolio__grid">
-
-        <!-- 이미지 항목 (AI 이미지 / 카드뉴스 / 상세페이지) -->
-        <a th:each="item : ${portfolioItems}"
-           th:href="${item.linkUrl != null and !item.linkUrl.isEmpty()} ? ${item.linkUrl} : '#'"
-           class="portfolio__item"
-           th:data-category="${item.category}"
-           th:data-name="${item.name}">
-          <img th:src="@{${item.imagePath}}" th:alt="${item.name}">
-          <span class="portfolio__item-label" th:text="${item.name}">이름</span>
-        </a>
-
-        <!-- 영상 그룹 대표 카드 (그룹당 첫 번째 영상으로 미리보기) -->
-        <a th:if="${not #lists.isEmpty(productIntroVideos)}"
-           href="#vg-intro" class="portfolio__item portfolio__item--video"
-           data-category="video" th:data-name="${productIntroVideos[0].title}" data-target="vg-intro">
-          <span class="portfolio__item-thumb">
-            <img th:src="@{${productIntroVideos[0].thumbnailPath}}" th:alt="${productIntroVideos[0].title}">
-            <span class="portfolio__item-label" th:text="${productIntroVideos[0].title}">제목</span>
-          </span>
-          <span class="portfolio__item-group">제품 소개</span>
-        </a>
-
-        <a th:if="${not #lists.isEmpty(reviewVideos)}"
-           href="#vg-review" class="portfolio__item portfolio__item--video"
-           data-category="video" th:data-name="${reviewVideos[0].title}" data-target="vg-review">
-          <span class="portfolio__item-thumb">
-            <img th:src="@{${reviewVideos[0].thumbnailPath}}" th:alt="${reviewVideos[0].title}">
-            <span class="portfolio__item-label" th:text="${reviewVideos[0].title}">제목</span>
-          </span>
-          <span class="portfolio__item-group">제품 리뷰</span>
-        </a>
-
-        <a th:if="${not #lists.isEmpty(shortformVideos)}"
-           href="#vg-short" class="portfolio__item portfolio__item--video"
-           data-category="video" th:data-name="${shortformVideos[0].title}" data-target="vg-short">
-          <span class="portfolio__item-thumb">
-            <img th:src="@{${shortformVideos[0].thumbnailPath}}" th:alt="${shortformVideos[0].title}">
-            <span class="portfolio__item-label" th:text="${shortformVideos[0].title}">제목</span>
-          </span>
-          <span class="portfolio__item-group">숏폼 콘텐츠</span>
-        </a>
-
-        <a th:if="${not #lists.isEmpty(aiProductionVideos)}"
-           href="#vg-ai" class="portfolio__item portfolio__item--video"
-           data-category="video" th:data-name="${aiProductionVideos[0].title}" data-target="vg-ai">
-          <span class="portfolio__item-thumb">
-            <img th:src="@{${aiProductionVideos[0].thumbnailPath}}" th:alt="${aiProductionVideos[0].title}">
-            <span class="portfolio__item-label" th:text="${aiProductionVideos[0].title}">제목</span>
-          </span>
-          <span class="portfolio__item-group">AI 제작</span>
-        </a>
-
+      <!-- AI 이미지 -->
+      <div class="portfolio__panel is-active" data-panel="ai-image">
+        <div class="portfolio__grid" th:if="${not #lists.isEmpty(aiImageItems)}">
+          <a th:each="item : ${aiImageItems}" class="portfolio__card" th:attr="data-img=@{${item.imagePath}},data-name=${item.name}">
+            <img th:src="@{${item.imagePath}}" th:alt="${item.name}" loading="lazy">
+            <span class="portfolio__card-label" th:text="${item.name}">이름</span>
+          </a>
+        </div>
+        <p class="portfolio__empty" th:if="${#lists.isEmpty(aiImageItems)}">등록된 항목이 없습니다.</p>
       </div>
 
-      <p class="portfolio__empty" hidden>검색 결과가 없습니다.</p>
+      <!-- 카드뉴스 (기본형/정사각형 서브탭) -->
+      <div class="portfolio__panel" data-panel="card-news">
+        <div class="portfolio__subtabs">
+          <button class="portfolio__subtab is-active" data-sub="cn-basic">기본형</button>
+          <button class="portfolio__subtab" data-sub="cn-square">정사각형</button>
+        </div>
 
-      <div class="portfolio__video-groups">
+        <div class="portfolio__subpanel is-active" data-sub="cn-basic">
+          <div class="portfolio__grid portfolio__grid--cardnews" th:if="${not #lists.isEmpty(cardNewsBasic)}">
+            <a th:each="item : ${cardNewsBasic}" class="portfolio__card" th:attr="data-img=@{${item.imagePath}},data-name=${item.name}">
+              <img th:src="@{${item.imagePath}}" th:alt="${item.name}" loading="lazy">
+              <span class="portfolio__card-label" th:text="${item.name}">이름</span>
+            </a>
+          </div>
+          <p class="portfolio__empty" th:if="${#lists.isEmpty(cardNewsBasic)}">등록된 항목이 없습니다.</p>
+        </div>
 
-        <div class="portfolio__video-group" id="vg-intro">
-          <h3 class="portfolio__video-heading">제품 소개</h3>
-          <div class="portfolio__video-row portfolio__video-row--wide">
-            <a th:each="video : ${productIntroVideos}"
-               th:href="${video.linkUrl}" target="_blank" rel="noopener"
-               class="portfolio__video-card" th:data-name="${video.title}">
-              <div class="portfolio__video-thumb">
-                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
-              </div>
-              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+        <div class="portfolio__subpanel" data-sub="cn-square">
+          <div class="portfolio__grid portfolio__grid--square" th:if="${not #lists.isEmpty(cardNewsSquare)}">
+            <a th:each="item : ${cardNewsSquare}" class="portfolio__card" th:attr="data-img=@{${item.imagePath}},data-name=${item.name}">
+              <img th:src="@{${item.imagePath}}" th:alt="${item.name}" loading="lazy">
+              <span class="portfolio__card-label" th:text="${item.name}">이름</span>
+            </a>
+          </div>
+          <p class="portfolio__empty" th:if="${#lists.isEmpty(cardNewsSquare)}">등록된 항목이 없습니다.</p>
+        </div>
+      </div>
+
+      <!-- 상세페이지 -->
+      <div class="portfolio__panel" data-panel="detail-page">
+        <div class="portfolio__grid portfolio__grid--tall" th:if="${not #lists.isEmpty(detailPageItems)}">
+          <a th:each="item : ${detailPageItems}" class="portfolio__card" th:attr="data-img=@{${item.imagePath}},data-name=${item.name}">
+            <img th:src="@{${item.imagePath}}" th:alt="${item.name}" loading="lazy">
+            <span class="portfolio__card-label" th:text="${item.name}">이름</span>
+          </a>
+        </div>
+        <p class="portfolio__empty" th:if="${#lists.isEmpty(detailPageItems)}">등록된 항목이 없습니다.</p>
+      </div>
+
+      <!-- 영상 -->
+      <div class="portfolio__panel" data-panel="video">
+
+        <div class="portfolio__video-group" th:if="${not #lists.isEmpty(promoShort) or not #lists.isEmpty(promoHorizontal)}">
+          <h3 class="portfolio__video-heading">1. 제품 홍보 영상</h3>
+          <div th:if="${not #lists.isEmpty(promoShort)}" class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${promoShort}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
+            </a>
+          </div>
+          <div th:if="${not #lists.isEmpty(promoHorizontal)}" class="portfolio__video-row portfolio__video-row--horizontal">
+            <a th:each="v : ${promoHorizontal}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
             </a>
           </div>
         </div>
 
-        <div class="portfolio__video-group" id="vg-review">
-          <h3 class="portfolio__video-heading">제품 리뷰</h3>
-          <div class="portfolio__video-row portfolio__video-row--wide">
-            <a th:each="video : ${reviewVideos}"
-               th:href="${video.linkUrl}" target="_blank" rel="noopener"
-               class="portfolio__video-card" th:data-name="${video.title}">
-              <div class="portfolio__video-thumb">
-                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
-              </div>
-              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+        <div class="portfolio__video-group" th:if="${not #lists.isEmpty(aiDrama) or not #lists.isEmpty(aiAnimation) or not #lists.isEmpty(aiAdLaw)}">
+          <h3 class="portfolio__video-heading">2. AI 제작</h3>
+          <p class="portfolio__video-sublabel" th:if="${not #lists.isEmpty(aiDrama)}">AI 드라마 | 숏폼형</p>
+          <div th:if="${not #lists.isEmpty(aiDrama)}" class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${aiDrama}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
+            </a>
+          </div>
+          <p class="portfolio__video-sublabel" th:if="${not #lists.isEmpty(aiAnimation)}">애니메이션 | 숏폼형</p>
+          <div th:if="${not #lists.isEmpty(aiAnimation)}" class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${aiAnimation}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
+            </a>
+          </div>
+          <p class="portfolio__video-sublabel" th:if="${not #lists.isEmpty(aiAdLaw)}">표시광고법 | 숏폼형</p>
+          <div th:if="${not #lists.isEmpty(aiAdLaw)}" class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${aiAdLaw}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
             </a>
           </div>
         </div>
 
-        <div class="portfolio__video-group" id="vg-short">
-          <h3 class="portfolio__video-heading">숏폼 콘텐츠</h3>
-          <div class="portfolio__video-row portfolio__video-row--narrow">
-            <a th:each="video : ${shortformVideos}"
-               th:href="${video.linkUrl}" target="_blank" rel="noopener"
-               class="portfolio__video-card" th:data-name="${video.title}">
-              <div class="portfolio__video-thumb">
-                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
-              </div>
-              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+        <div class="portfolio__video-group" th:if="${not #lists.isEmpty(brandShort) or not #lists.isEmpty(brandHorizontal)}">
+          <h3 class="portfolio__video-heading">3. 브랜드 영상</h3>
+          <div th:if="${not #lists.isEmpty(brandShort)}" class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${brandShort}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
+            </a>
+          </div>
+          <div th:if="${not #lists.isEmpty(brandHorizontal)}" class="portfolio__video-row portfolio__video-row--horizontal">
+            <a th:each="v : ${brandHorizontal}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
             </a>
           </div>
         </div>
 
-        <div class="portfolio__video-group" id="vg-ai">
-          <h3 class="portfolio__video-heading">AI 제작</h3>
-          <div class="portfolio__video-row portfolio__video-row--narrow">
-            <a th:each="video : ${aiProductionVideos}"
-               th:href="${video.linkUrl}" target="_blank" rel="noopener"
-               class="portfolio__video-card" th:data-name="${video.title}">
-              <div class="portfolio__video-thumb">
-                <img th:src="@{${video.thumbnailPath}}" th:alt="${video.title}">
-              </div>
-              <span class="portfolio__video-title" th:text="${video.title}">제목</span>
+        <div class="portfolio__video-group" th:if="${not #lists.isEmpty(viralShort)}">
+          <h3 class="portfolio__video-heading">4. 바이럴 콘텐츠</h3>
+          <div class="portfolio__video-row portfolio__video-row--vertical">
+            <a th:each="v : ${viralShort}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="portfolio__video-group" th:if="${not #lists.isEmpty(reviewHorizontal)}">
+          <h3 class="portfolio__video-heading">5. 제품 리뷰</h3>
+          <div class="portfolio__video-row portfolio__video-row--horizontal">
+            <a th:each="v : ${reviewHorizontal}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
+              <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>
+              <span class="portfolio__video-title" th:text="${v.title}">제목</span>
             </a>
           </div>
         </div>
@@ -152,6 +163,16 @@
 
     </div>
   </section>
+
+  <!-- 이미지 확대 모달 (AI이미지/카드뉴스/상세페이지 공용) -->
+  <div class="portfolio-modal" id="portfolioModal">
+    <div class="portfolio-modal__backdrop" id="portfolioModalBackdrop"></div>
+    <div class="portfolio-modal__panel">
+      <button type="button" class="portfolio-modal__close" id="portfolioModalClose" aria-label="닫기">×</button>
+      <img id="portfolioModalImg" src="" alt="">
+      <p id="portfolioModalName" class="portfolio-modal__name"></p>
+    </div>
+  </div>
 
   <div th:replace="~{fragments/footer :: footer}"></div>
 
