@@ -68,9 +68,8 @@ public class S3Service {
         String extension = extractExtension(file.getOriginalFilename());
         String fileKey = folder + "/" + UUID.randomUUID() + extension;
 
-        byte[] uploadBytes = ".gif".equalsIgnoreCase(extension)
-                ? compressGif(file)
-                : file.getBytes();
+        // 압축 기능 비활성화 — 원본 그대로 업로드
+        byte[] uploadBytes = file.getBytes();
 
         s3Client.putObject(
                 PutObjectRequest.builder()

@@ -416,3 +416,41 @@ document.addEventListener('DOMContentLoaded', () => {
       .join('');
   });
 });
+
+// ===== 포트폴리오 - 그리드/영상행 페이지네이션 =====
+document.addEventListener('DOMContentLoaded', () => {
+  const containers = document.querySelectorAll('.portfolio__grid[data-limit], .portfolio__video-row[data-limit]');
+
+  containers.forEach((container) => {
+    const pageSize = parseInt(container.dataset.limit, 10);
+    const itemSelector = container.classList.contains('portfolio__grid') ? '.portfolio__card' : '.portfolio__video-card';
+    const items = Array.from(container.querySelectorAll(itemSelector));
+    const pagination = container.nextElementSibling;
+
+    if (!pagination || !pagination.classList.contains('portfolio__pagination')) return;
+    if (items.length <= pageSize) return; // 한 페이지 분량 이하면 페이지네이션 불필요
+
+    const pageCount = Math.ceil(items.length / pageSize);
+
+    function showPage(page) {
+      items.forEach((item, index) => {
+        item.style.display = (index >= (page - 1) * pageSize && index < page * pageSize) ? '' : 'none';
+      });
+      pagination.querySelectorAll('.portfolio__page-btn').forEach((btn) => {
+        btn.classList.toggle('is-active', parseInt(btn.dataset.page, 10) === page);
+      });
+    }
+
+    for (let p = 1; p <= pageCount; p++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'portfolio__page-btn';
+      btn.textContent = p;
+      btn.dataset.page = p;
+      btn.addEventListener('click', () => showPage(p));
+      pagination.appendChild(btn);
+    }
+
+    showPage(1);
+  });
+});

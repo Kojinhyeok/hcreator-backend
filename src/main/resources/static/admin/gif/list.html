@@ -76,11 +76,6 @@
 						<textarea class="form-control" id="title" rows="3" required placeholder="한 줄에 하나씩 입력&#10;예: ✔️주름&#10;✔️탄력(탄성복원력)&#10;✔️피부결"></textarea>
 					</div>
 
-					<div class="mb-3 form-check">
-						<input type="checkbox" class="form-check-input" id="featured">
-						<label class="form-check-label" for="featured">이달의 GIF로 노출</label>
-					</div>
-
 					<div class="mb-3">
 						<label class="form-label">상세 내용</label>
 						<div id="quillEditor" style="height: 300px; background:#fff;"></div>
@@ -123,7 +118,7 @@
 		document.getElementById("btnSave").addEventListener("click", saveItem);
 	});
 
-	// GIF는 서버(/api/admin/gif/upload)로 보내 gifsicle 압축을 거쳐 S3에 저장됨
+	// GIF 상세 내용(에디터) 안 이미지는 압축 없이 업로드됨
 	async function quillImageHandler() {
 		const input = document.createElement('input');
 		input.type = 'file';
@@ -164,10 +159,7 @@
 									? `<img src="${item.imagePath}" style="width:50px; height:50px; object-fit:cover;" class="rounded border">`
 									: `<div class="bg-light text-center rounded border" style="width:50px; height:50px; line-height:50px; font-size:10px;">No Image</div>`}
 							</td>
-							<td class="align-middle" style="white-space: pre-line;">
-								${item.title}
-								${item.featured ? '<span class="badge bg-warning text-dark ms-1">이달의 GIF</span>' : ''}
-							</td>
+							<td class="align-middle" style="white-space: pre-line;">${item.title}</td>
 							<td class="align-middle">${item.sortOrder ?? '-'}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
@@ -184,7 +176,6 @@
 		const fileInput = document.getElementById("gifFile");
 		const file = fileInput.files[0];
 		const title = document.getElementById("title").value;
-		const featured = document.getElementById("featured").checked;
 		const detailContent = quill.root.innerHTML;
 
 		if (!title) { alert("템플릿 이름을 입력해주세요."); return; }
@@ -197,7 +188,6 @@
 			let imagePath = null;
 
 			if (file) {
-				// 서버로 파일 전송 → gifsicle로 압축 → S3 업로드까지 한 번에 처리
 				const formData = new FormData();
 				formData.append('file', file);
 				const uploadResult = await fetch("/api/admin/gif/upload", {
@@ -213,7 +203,7 @@
 			const response = await fetch(url, {
 				method: method,
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ title, imagePath, detailContent, featured })
+				body: JSON.stringify({ title, imagePath, detailContent })
 			});
 			if (!response.ok) throw new Error("저장 실패");
 
@@ -243,7 +233,6 @@
 	function openAddModal() {
 		document.getElementById("gifForm").reset();
 		document.getElementById("itemId").value = "";
-		document.getElementById("featured").checked = false;
 		document.getElementById("thumbnailPreview").classList.add("d-none");
 		document.getElementById("modalTitle").innerText = "템플릿 등록";
 		quill.setContents([]);
@@ -254,7 +243,6 @@
 		const item = gifList[index];
 		document.getElementById("itemId").value = item.id;
 		document.getElementById("title").value = item.title;
-		document.getElementById("featured").checked = !!item.featured;
 
 		const previewImg = document.getElementById("previewImg");
 		if (item.imagePath) {

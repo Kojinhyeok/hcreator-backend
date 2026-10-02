@@ -880,6 +880,35 @@
   z-index: 1;
 }
 
+.portfolio__pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 20px 0 32px;
+}
+
+.portfolio__pagination:empty {
+  display: none;
+}
+
+.portfolio__page-btn {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text-secondary);
+  border-radius: 6px;
+  font-size: var(--fs-xs);
+  cursor: pointer;
+}
+
+.portfolio__page-btn.is-active {
+  background: var(--color-purple-600);
+  border-color: var(--color-purple-600);
+  color: var(--color-white);
+}
+
 /* 모바일 */
 @media (max-width: 768px) {
   .portfolio__grid {

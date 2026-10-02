@@ -23,6 +23,7 @@ public class PageController {
     private final PortfolioVideoRepository portfolioVideoRepository;
     private final com.hcreator.creator.domain.section.ServiceDetailSectionRepository serviceDetailSectionRepository;
     private final com.hcreator.creator.domain.section.PageAttachmentRepository pageAttachmentRepository;
+    private final com.hcreator.creator.domain.gif.FeaturedGifRepository featuredGifRepository;
 
     @GetMapping("/")
     public String index() {
@@ -122,6 +123,13 @@ public class PageController {
     @GetMapping("/admin")
     public String adminRedirect() {
         return "redirect:/admin/index.html";
+    }
+
+    @GetMapping("/marketing/gif")
+    public String marketingGif(Model model) {
+        model.addAttribute("featuredGifTemplates", featuredGifRepository.findAllByOrderBySortOrderAsc());
+        model.addAttribute("gifTemplates", gifTemplateRepository.findAllByOrderBySortOrderAsc());
+        return "marketing-gif";
     }
 
 }

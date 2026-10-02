@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class GifTemplate {
+public class FeaturedGif {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +20,4 @@ public class GifTemplate {
     private String imagePath;
 
     private Integer sortOrder;
-
-    @Column(columnDefinition = "LONGTEXT")
-    private String detailContent;
 }
