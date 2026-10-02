@@ -6,6 +6,4 @@ import java.util.List;
 
 public interface GifTemplateRepository extends JpaRepository<GifTemplate, Long> {
     List<GifTemplate> findAllByOrderBySortOrderAsc();
-    List<GifTemplate> findByFeaturedTrueOrderBySortOrderAsc();
-    List<GifTemplate> findByFeaturedFalseOrderBySortOrderAsc();
 }
