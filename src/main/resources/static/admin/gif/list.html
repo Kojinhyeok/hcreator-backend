@@ -47,6 +47,9 @@
 						</table>
 					</div>
 				</div>
+				<nav class="mt-3">
+					<ul class="pagination justify-content-center" id="gifPagination"></ul>
+				</nav>
 			</div>
 		</main>
 	</div>
@@ -95,6 +98,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quill/1.3.6/quill.min.js"></script>
 <script>
 	let gifList = [];
+	let gifCurrentPage = 1;
+	const PAGE_SIZE = 15;
 	let quill;
 
 	document.addEventListener("DOMContentLoaded", function () {
@@ -149,25 +154,41 @@
 			.then(res => res.json())
 			.then(list => {
 				gifList = list;
-				const tbody = document.querySelector("#gifTable tbody");
-				tbody.innerHTML = list.length === 0
-					? '<tr><td colspan="4" class="text-center py-4">등록된 템플릿이 없습니다.</td></tr>'
-					: list.map((item, index) => `
-						<tr>
-							<td>
-								${item.imagePath
-									? `<img src="${item.imagePath}" style="width:50px; height:50px; object-fit:cover;" class="rounded border">`
-									: `<div class="bg-light text-center rounded border" style="width:50px; height:50px; line-height:50px; font-size:10px;">No Image</div>`}
-							</td>
-							<td class="align-middle" style="white-space: pre-line;">${item.title}</td>
-							<td class="align-middle">${item.sortOrder ?? '-'}</td>
-							<td class="align-middle">
-								<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
-								<button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})">삭제</button>
-							</td>
-						</tr>
-					`).join("");
+				gifCurrentPage = 1;
+				renderGifPage();
 			});
+	}
+
+	function renderGifPage() {
+		const totalPages = Math.max(1, Math.ceil(gifList.length / PAGE_SIZE));
+		if (gifCurrentPage > totalPages) gifCurrentPage = totalPages;
+
+		const start = (gifCurrentPage - 1) * PAGE_SIZE;
+		const pageItems = gifList.slice(start, start + PAGE_SIZE);
+
+		const tbody = document.querySelector("#gifTable tbody");
+		tbody.innerHTML = pageItems.length === 0
+			? '<tr><td colspan="4" class="text-center py-4">등록된 템플릿이 없습니다.</td></tr>'
+			: pageItems.map((item) => {
+				const index = gifList.indexOf(item);
+				return `
+					<tr>
+						<td>
+							${item.imagePath
+								? `<img src="${item.imagePath}" style="width:50px; height:50px; object-fit:cover;" class="rounded border">`
+								: `<div class="bg-light text-center rounded border" style="width:50px; height:50px; line-height:50px; font-size:10px;">No Image</div>`}
+						</td>
+						<td class="align-middle" style="white-space: pre-line;">${item.title}</td>
+						<td class="align-middle">${item.sortOrder ?? '-'}</td>
+						<td class="align-middle">
+							<button class="btn btn-sm btn-outline-primary" onclick="openEditModal(${index})">수정</button>
+							<button class="btn btn-sm btn-outline-danger" onclick="deleteItem(${item.id})">삭제</button>
+						</td>
+					</tr>
+				`;
+			}).join("");
+
+		renderPaginationUI("gifPagination", totalPages, gifCurrentPage, (p) => { gifCurrentPage = p; renderGifPage(); });
 	}
 
 	async function saveItem() {
@@ -263,6 +284,27 @@
 			fetch(`/api/admin/gif/${id}`, { method: "DELETE" })
 				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadItems(); } });
 		}
+	}
+
+	function renderPaginationUI(containerId, totalPages, currentPage, onPageClick) {
+		const container = document.getElementById(containerId);
+		if (!container) return;
+		if (totalPages <= 1) { container.innerHTML = ""; return; }
+
+		let html = "";
+		for (let p = 1; p <= totalPages; p++) {
+			html += `<li class="page-item ${p === currentPage ? 'active' : ''}">
+				<a href="#" class="page-link" data-page="${p}">${p}</a>
+			</li>`;
+		}
+		container.innerHTML = html;
+
+		container.querySelectorAll("a.page-link").forEach((a) => {
+			a.addEventListener("click", (e) => {
+				e.preventDefault();
+				onPageClick(parseInt(a.dataset.page, 10));
+			});
+		});
 	}
 </script>
 </body>

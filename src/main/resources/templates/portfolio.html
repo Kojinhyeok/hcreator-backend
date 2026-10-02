@@ -89,7 +89,7 @@
         <div class="portfolio__video-group" th:if="${not #lists.isEmpty(promoShort) or not #lists.isEmpty(promoHorizontal)}">
           <h3 class="portfolio__video-heading">1. 제품 홍보 영상</h3>
 
-          <p class="portfolio__video-sublabel" th:if="${not #lists.isEmpty(promoShort)}">숏폼형</p>
+          <p class="portfolio__video-sublabel" th:if="${not #lists.isEmpty(promoShort)}">세로형</p>
           <div th:if="${not #lists.isEmpty(promoShort)}" class="portfolio__video-row portfolio__video-row--vertical" data-limit="8">
             <a th:each="v : ${promoShort}" th:href="${v.linkUrl}" target="_blank" rel="noopener" class="portfolio__video-card">
               <div class="portfolio__video-thumb"><img th:src="@{${v.thumbnailPath}}" th:alt="${v.title}" loading="lazy"></div>

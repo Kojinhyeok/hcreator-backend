@@ -18,7 +18,8 @@
   background: var(--color-purple-900);
 }
 
-.about-photo__media img {
+.about-photo__media img,
+.about-photo__media video {
   display: block;
   width: 100%;
   height: 100%;
@@ -283,6 +284,32 @@
   word-break: keep-all;
 }
 
+.service-hero--video {
+  position: relative;
+  overflow: hidden;
+}
+
+.service-hero__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.service-hero--video .service-hero__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.service-hero--video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(38, 33, 92, 0.45);
+  z-index: 0;
+}
 /* ===========================================================
    제작 절차 (스텝)
 =========================================================== */
@@ -845,18 +872,18 @@
   position: relative;
   max-width: 600px;
   width: 100%;
-  max-height: 85vh;
+  max-height: 90vh;
   background: var(--color-white);
   border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;
+  display: block;
 }
 
 .portfolio-modal__panel img {
   width: 100%;
-  max-height: 70vh;
-  object-fit: contain;
+  height: auto;
+  display: block;
+  margin: 0;
   background: var(--color-purple-bg-light);
 }
 
@@ -1063,20 +1090,23 @@
   font-weight: 700;
   margin: 20px 0 10px;
 }
-
+.gif-detail-modal__body {
+  padding: 0;
+}
 .gif-detail-modal__body p {
   font-size: 14px;
   color: var(--color-text-secondary);
   line-height: 1.7;
-  margin-bottom: 12px;
+  margin: 0;
 }
 
 .gif-detail-modal__body img {
   max-width: 100%;
+  width: 100%;
   height: auto;
   border-radius: 8px;
-  margin: 16px 0;
-  display: inline-block;   /* block → inline-block */
+  display: block;
+  margin: 0;
 }
 
 /* ===========================================================

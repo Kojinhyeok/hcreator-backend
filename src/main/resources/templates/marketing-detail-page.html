@@ -11,7 +11,8 @@
 
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <section class="service-hero">
+  <section class="service-hero service-hero--video">
+    <video class="service-hero__video" autoplay muted loop playsinline th:src="@{/videos/detail-page-hero.mp4}"></video>
     <div class="service-hero__inner">
       <p class="service-hero__label">D E T A I L   P A G E</p>
       <h1 class="service-hero__title">상세페이지 제작</h1>
