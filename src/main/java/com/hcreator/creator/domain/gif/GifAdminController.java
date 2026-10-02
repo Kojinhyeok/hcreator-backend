@@ -3,12 +3,13 @@ package com.hcreator.creator.domain.gif;
 import com.hcreator.creator.common.S3Service;
 import com.hcreator.creator.repository.gif.GifTemplateRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/admin/gif")
@@ -18,7 +19,8 @@ public class GifAdminController {
     private final GifTemplateRepository gifTemplateRepository;
     private final S3Service s3Service;
 
-    // 1. 업로드용 presigned URL 요청
+    public record GifTemplateCreateRequest(String title, String imagePath, String detailContent) {}
+
     @PostMapping("/upload-url")
     public S3Service.PresignedUploadResult getUploadUrl(@RequestBody Map<String, String> body) {
         String fileName = body.get("fileName");
@@ -30,7 +32,6 @@ public class GifAdminController {
         return s3Service.uploadWithGifCompression(file, "gif-templates");
     }
 
-    // 2. S3 업로드 완료 후, DB에 최종 저장
     @PostMapping
     public GifTemplate create(@RequestBody GifTemplateCreateRequest request) {
         GifTemplate template = new GifTemplate();
@@ -41,7 +42,7 @@ public class GifAdminController {
         Integer maxOrder = gifTemplateRepository.findAllByOrderBySortOrderAsc()
                 .stream()
                 .map(GifTemplate::getSortOrder)
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .max(Integer::compareTo)
                 .orElse(0);
         template.setSortOrder(maxOrder + 1);
@@ -49,13 +50,11 @@ public class GifAdminController {
         return gifTemplateRepository.save(template);
     }
 
-    // 3. 목록 조회
     @GetMapping
     public List<GifTemplate> list() {
         return gifTemplateRepository.findAllByOrderBySortOrderAsc();
     }
 
-    // 4. 삭제
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         GifTemplate template = gifTemplateRepository.findById(id)
@@ -66,7 +65,7 @@ public class GifAdminController {
 
     private String extractFileKey(String publicUrl) {
         int idx = publicUrl.indexOf(".amazonaws.com/");
-        return publicUrl.substring(idx + ".amazonaws.com/".length());
+        return idx >= 0 ? publicUrl.substring(idx + ".amazonaws.com/".length()) : publicUrl;
     }
 
     @PutMapping("/{id}")
@@ -80,5 +79,4 @@ public class GifAdminController {
         template.setDetailContent(request.detailContent());
         return gifTemplateRepository.save(template);
     }
-
 }

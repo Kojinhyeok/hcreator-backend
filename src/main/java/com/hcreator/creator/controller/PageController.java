@@ -12,7 +12,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -47,8 +46,8 @@ public class PageController {
 
     @GetMapping("/marketing/gif")
     public String marketingGif(Model model) {
-        model.addAttribute("featuredGifTemplates", gifTemplateRepository.findByFeaturedTrueOrderBySortOrderAsc());
-        model.addAttribute("gifTemplates", gifTemplateRepository.findByFeaturedFalseOrderBySortOrderAsc());
+        model.addAttribute("featuredGifTemplates", featuredGifRepository.findAllByOrderBySortOrderAsc());
+        model.addAttribute("gifTemplates", gifTemplateRepository.findAllByOrderBySortOrderAsc());
         return "marketing-gif";
     }
 
@@ -124,12 +123,4 @@ public class PageController {
     public String adminRedirect() {
         return "redirect:/admin/index.html";
     }
-
-    @GetMapping("/marketing/gif")
-    public String marketingGif(Model model) {
-        model.addAttribute("featuredGifTemplates", featuredGifRepository.findAllByOrderBySortOrderAsc());
-        model.addAttribute("gifTemplates", gifTemplateRepository.findAllByOrderBySortOrderAsc());
-        return "marketing-gif";
-    }
-
 }
