@@ -22,12 +22,16 @@
   <section class="portfolio">
     <div class="portfolio__inner">
 
-      <div class="portfolio__tabs">
-        <button class="portfolio__tab is-active" data-panel="ai-image">AI 이미지</button>
-        <button class="portfolio__tab" data-panel="card-news">카드뉴스</button>
-        <button class="portfolio__tab" data-panel="detail-page">상세페이지</button>
-        <button class="portfolio__tab" data-panel="video">영상</button>
+      <div class="portfolio__controls">
+        <div class="portfolio__tabs">
+          <button class="portfolio__tab is-active" data-panel="ai-image">AI 이미지</button>
+          <button class="portfolio__tab" data-panel="card-news">카드뉴스</button>
+          <button class="portfolio__tab" data-panel="detail-page">상세페이지</button>
+          <button class="portfolio__tab" data-panel="video">영상</button>
+        </div>
+        <input type="search" class="portfolio__search" placeholder="이름으로 검색" aria-label="포트폴리오 검색">
       </div>
+      <p class="portfolio__no-result" hidden>검색 결과가 없습니다.</p>
 
       <!-- AI 이미지 -->
       <div class="portfolio__panel is-active" data-panel="ai-image">

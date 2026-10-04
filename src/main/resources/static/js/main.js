@@ -417,40 +417,113 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ===== 포트폴리오 - 그리드/영상행 페이지네이션 =====
+// ===== 포트폴리오 - 검색 + 그리드/영상행 페이지네이션 =====
 document.addEventListener('DOMContentLoaded', () => {
   const containers = document.querySelectorAll('.portfolio__grid[data-limit], .portfolio__video-row[data-limit]');
+  if (!containers.length) return;
 
-  containers.forEach((container) => {
-    const pageSize = parseInt(container.dataset.limit, 10);
-    const itemSelector = container.classList.contains('portfolio__grid') ? '.portfolio__card' : '.portfolio__video-card';
+  const searchInput = document.querySelector('.portfolio__search');
+  const noResult = document.querySelector('.portfolio__no-result');
+  let keyword = '';
+
+  const states = Array.from(containers).map((container) => {
+    const isGrid = container.classList.contains('portfolio__grid');
+    const itemSelector = isGrid ? '.portfolio__card' : '.portfolio__video-card';
+    const labelSelector = isGrid ? '.portfolio__card-label' : '.portfolio__video-title';
     const items = Array.from(container.querySelectorAll(itemSelector));
-    const pagination = container.nextElementSibling;
-
-    if (!pagination || !pagination.classList.contains('portfolio__pagination')) return;
-    if (items.length <= pageSize) return; // 한 페이지 분량 이하면 페이지네이션 불필요
-
-    const pageCount = Math.ceil(items.length / pageSize);
-
-    function showPage(page) {
-      items.forEach((item, index) => {
-        item.style.display = (index >= (page - 1) * pageSize && index < page * pageSize) ? '' : 'none';
-      });
-      pagination.querySelectorAll('.portfolio__page-btn').forEach((btn) => {
-        btn.classList.toggle('is-active', parseInt(btn.dataset.page, 10) === page);
-      });
-    }
-
-    for (let p = 1; p <= pageCount; p++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'portfolio__page-btn';
-      btn.textContent = p;
-      btn.dataset.page = p;
-      btn.addEventListener('click', () => showPage(p));
-      pagination.appendChild(btn);
-    }
-
-    showPage(1);
+    return {
+      container,
+      items,
+      names: items.map((el) =>
+        (el.dataset.name || el.querySelector(labelSelector)?.textContent || '').toLowerCase()
+      ),
+      pageSize: parseInt(container.dataset.limit, 10),
+      pagination: container.nextElementSibling,
+      page: 1,
+      matchedCount: 0
+    };
   });
+
+  function renderState(state) {
+    const matched = state.items.filter((_, i) => state.names[i].includes(keyword));
+    const pageCount = Math.max(1, Math.ceil(matched.length / state.pageSize));
+    if (state.page > pageCount) state.page = pageCount;
+
+    state.items.forEach((el) => { el.style.display = 'none'; });
+    matched
+      .slice((state.page - 1) * state.pageSize, state.page * state.pageSize)
+      .forEach((el) => { el.style.display = ''; });
+
+    state.matchedCount = matched.length;
+
+    // 영상 행: 검색 결과가 없으면 행과 소제목을 함께 숨김
+    const isVideoRow = state.container.classList.contains('portfolio__video-row');
+    state.container.style.display = matched.length === 0 && keyword ? 'none' : '';
+    if (isVideoRow) {
+      const prev = state.container.previousElementSibling;
+      if (prev && prev.classList.contains('portfolio__video-sublabel')) {
+        prev.style.display = matched.length === 0 && keyword ? 'none' : '';
+      }
+    }
+
+    // 페이지 번호
+    const pagination = state.pagination;
+    if (pagination && pagination.classList.contains('portfolio__pagination')) {
+      pagination.innerHTML = '';
+      if (pageCount > 1) {
+        for (let p = 1; p <= pageCount; p++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'portfolio__page-btn' + (p === state.page ? ' is-active' : '');
+          btn.textContent = p;
+          btn.addEventListener('click', () => {
+            state.page = p;
+            renderState(state);
+          });
+          pagination.appendChild(btn);
+        }
+      }
+    }
+  }
+
+  function updateGroupsAndNoResult() {
+    // 영상 그룹: 안의 행이 전부 비면 제목(1. 제품 홍보 영상 등)까지 숨김
+    document.querySelectorAll('.portfolio__video-group').forEach((group) => {
+      const groupStates = states.filter((s) => group.contains(s.container));
+      const hasAny = groupStates.some((s) => s.matchedCount > 0);
+      group.style.display = keyword && !hasAny ? 'none' : '';
+    });
+
+    // 현재 열려 있는 탭 기준으로 결과 없음 문구 표시
+    if (noResult) {
+      const activePanel = document.querySelector('.portfolio__panel.is-active');
+      const total = states
+        .filter((s) => activePanel && activePanel.contains(s.container))
+        .reduce((sum, s) => sum + s.matchedCount, 0);
+      noResult.hidden = !keyword || total > 0;
+    }
+  }
+
+  function renderAll() {
+    states.forEach(renderState);
+    updateGroupsAndNoResult();
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      keyword = searchInput.value.trim().toLowerCase();
+      states.forEach((s) => { s.page = 1; });
+      renderAll();
+    });
+  }
+
+  // 탭 전환 시 결과 없음 문구 갱신
+  document.querySelectorAll('.portfolio__tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      // 탭 전환 로직(is-active 토글)이 먼저 실행된 뒤 갱신되도록 다음 틱에 실행
+      setTimeout(updateGroupsAndNoResult, 0);
+    });
+  });
+
+  renderAll();
 });

@@ -936,6 +936,45 @@
   color: var(--color-white);
 }
 
+.portfolio__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.portfolio__controls .portfolio__tabs {
+  margin-bottom: 0;
+}
+
+.portfolio__search {
+  width: 260px;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  outline: none;
+}
+
+.portfolio__search:focus {
+  border-color: var(--color-purple-600);
+}
+
+.portfolio__no-result {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 48px 0;
+}
+
+@media (max-width: 768px) {
+  .portfolio__search {
+    width: 100%;
+  }
+}
+
 /* 모바일 */
 @media (max-width: 768px) {
   .portfolio__grid {
