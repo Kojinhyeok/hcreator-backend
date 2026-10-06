@@ -27,9 +27,16 @@ public class GifAdminController {
         return s3Service.createUploadUrl("gif-templates", fileName);
     }
 
+    // 썸네일(대표 GIF)용 - GIF는 MP4 + 포스터로 변환되어 저장됨
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public S3Service.PresignedUploadResult upload(@RequestParam("file") MultipartFile file) throws java.io.IOException {
-        return s3Service.uploadWithGifCompression(file, "gif-templates");
+        return s3Service.uploadGifAsMp4(file, "gif-templates");
+    }
+
+    // 상세 내용(에디터) 안 이미지용 - 변환 없이 원본 그대로
+    @PostMapping(value = "/upload-raw", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public S3Service.PresignedUploadResult uploadRaw(@RequestParam("file") MultipartFile file) throws java.io.IOException {
+        return s3Service.uploadRaw(file, "gif-templates");
     }
 
     @PostMapping
@@ -59,13 +66,8 @@ public class GifAdminController {
     public void delete(@PathVariable Long id) {
         GifTemplate template = gifTemplateRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("템플릿을 찾을 수 없습니다."));
-        s3Service.deleteFile(extractFileKey(template.getImagePath()));
+        s3Service.deleteFile(template.getImagePath());
         gifTemplateRepository.deleteById(id);
-    }
-
-    private String extractFileKey(String publicUrl) {
-        int idx = publicUrl.indexOf(".amazonaws.com/");
-        return idx >= 0 ? publicUrl.substring(idx + ".amazonaws.com/".length()) : publicUrl;
     }
 
     @PutMapping("/{id}")

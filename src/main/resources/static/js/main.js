@@ -527,3 +527,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderAll();
 });
+
+// ===== 레이지 비디오 (GIF 대체 MP4): 화면에 들어오면 재생, 벗어나면 일시정지 =====
+document.addEventListener('DOMContentLoaded', () => {
+  const videos = document.querySelectorAll('video.lazy-video');
+  if (!videos.length) return;
+
+  function loadVideo(video) {
+    if (video.dataset.loaded) return;
+    video.querySelectorAll('source[data-src]').forEach((source) => {
+      source.src = source.dataset.src;
+    });
+    video.load();
+    video.dataset.loaded = '1';
+  }
+
+  function playVideo(video) {
+    const promise = video.play();
+    if (promise && promise.catch) promise.catch(() => {}); // 저전력 모드 등으로 막히면 포스터 유지
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    videos.forEach((video) => { loadVideo(video); playVideo(video); });
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      const video = entry.target;
+      if (entry.isIntersecting) {
+        loadVideo(video);
+        playVideo(video);
+      } else {
+        video.pause();
+      }
+    });
+  }, { rootMargin: '200px 0px', threshold: 0.1 });
+
+  videos.forEach((video) => observer.observe(video));
+});

@@ -19,9 +19,10 @@ public class FeaturedGifAdminController {
 
     public record FeaturedGifRequest(String title, String imagePath) {}
 
+    // GIF는 MP4 + 포스터로 변환되어 저장됨
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public S3Service.PresignedUploadResult upload(@RequestParam("file") MultipartFile file) throws java.io.IOException {
-        return s3Service.uploadWithGifCompression(file, "featured-gif");
+        return s3Service.uploadGifAsMp4(file, "featured-gif");
     }
 
     @GetMapping
@@ -60,13 +61,7 @@ public class FeaturedGifAdminController {
     public void delete(@PathVariable Long id) {
         FeaturedGif gif = featuredGifRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
-        s3Service.deleteFile(extractFileKey(gif.getImagePath()));
+        s3Service.deleteFile(gif.getImagePath());
         featuredGifRepository.deleteById(id);
-    }
-
-    private String extractFileKey(String publicUrl) {
-        if (publicUrl == null) return "";
-        int idx = publicUrl.indexOf(".amazonaws.com/");
-        return idx >= 0 ? publicUrl.substring(idx + ".amazonaws.com/".length()) : publicUrl;
     }
 }
