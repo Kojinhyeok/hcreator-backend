@@ -32,19 +32,64 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalName = document.getElementById('portfolioModalName');
   const modalBackdrop = document.getElementById('portfolioModalBackdrop');
   const modalClose = document.getElementById('portfolioModalClose');
+  const modalPanel = document.getElementById('portfolioModalPanel');
+  const modalContent = document.getElementById('portfolioModalContent');
+  let openToken = 0; // 늦게 도착한 응답이 다른 항목 위에 덮어쓰이지 않게 하는 용도
+
+  function showSingleImage(card) {
+    modalContent.classList.remove('is-active');
+    modalContent.innerHTML = '';
+    modalImg.style.display = '';
+    modalImg.src = card.dataset.img;
+  }
+
+  // 상세페이지: 에디터로 이어붙인 내용을 클릭할 때만 불러온다
+  function showDetail(card, token) {
+    modalImg.style.display = 'none';
+    modalContent.classList.add('is-active');
+    modalContent.innerHTML = '<p class="portfolio-modal__loading">불러오는 중...</p>';
+
+    fetch(`/api/portfolio/items/${card.dataset.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('load failed');
+        return res.json();
+      })
+      .then((data) => {
+        if (token !== openToken) return;
+        const html = data.detailContent && data.detailContent.trim() ? data.detailContent : '';
+        if (!html) { showSingleImage(card); return; }
+        modalContent.innerHTML = html;
+        if (window.initLazyVideos) window.initLazyVideos(modalContent); // 영상은 화면에 보일 때만 재생
+      })
+      .catch(() => {
+        if (token !== openToken) return;
+        showSingleImage(card); // 실패하면 대표 이미지라도 보여준다
+      });
+  }
 
   document.querySelectorAll('.portfolio__card').forEach((card) => {
     card.addEventListener('click', (e) => {
       e.preventDefault();
-      modalImg.src = card.dataset.img;
+      const token = ++openToken;
       modalName.textContent = card.dataset.name || '';
+      modalPanel.scrollTop = 0;
+
+      if (card.dataset.detail === 'true' && card.dataset.id) {
+        showDetail(card, token);
+      } else {
+        showSingleImage(card);
+      }
+
       modal.classList.add('is-open');
       document.body.style.overflow = 'hidden';
     });
   });
 
   function closeModal() {
+    openToken++; // 진행 중인 불러오기 무효화
     modal.classList.remove('is-open');
+    modalContent.innerHTML = '';                 // 닫으면 영상도 함께 정리
+    modalContent.classList.remove('is-active');
     document.body.style.overflow = '';
   }
 

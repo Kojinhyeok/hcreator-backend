@@ -78,7 +78,8 @@
       <!-- 상세페이지 -->
       <div class="portfolio__panel" data-panel="detail-page">
         <div class="portfolio__grid portfolio__grid--tall" data-limit="12" th:if="${not #lists.isEmpty(detailPageItems)}">
-          <a th:each="item : ${detailPageItems}" class="portfolio__card" th:attr="data-img=@{${item.imagePath}},data-name=${item.name}">
+          <a th:each="item : ${detailPageItems}" class="portfolio__card"
+             th:attr="data-img=@{${item.imagePath}},data-name=${item.name},data-id=${item.id},data-detail=${item.detailContent != null and not #strings.isEmpty(#strings.trim(item.detailContent))}">
             <img th:src="@{${item.imagePath}}" th:alt="${item.name}" loading="lazy">
             <span class="portfolio__card-label" th:text="${item.name}">이름</span>
           </a>
@@ -195,9 +196,10 @@
   <!-- 이미지 확대 모달 (AI이미지/카드뉴스/상세페이지 공용) -->
   <div class="portfolio-modal" id="portfolioModal">
     <div class="portfolio-modal__backdrop" id="portfolioModalBackdrop"></div>
-    <div class="portfolio-modal__panel">
+    <div class="portfolio-modal__panel" id="portfolioModalPanel">
       <button type="button" class="portfolio-modal__close" id="portfolioModalClose" aria-label="닫기">×</button>
       <img id="portfolioModalImg" src="" alt="">
+      <div id="portfolioModalContent" class="portfolio-modal__content"></div>
       <p id="portfolioModalName" class="portfolio-modal__name"></p>
     </div>
   </div>

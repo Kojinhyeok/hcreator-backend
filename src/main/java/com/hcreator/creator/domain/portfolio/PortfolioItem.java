@@ -24,6 +24,10 @@ public class PortfolioItem {
     private String linkUrl;
     private Integer sortOrder;
 
+    // category=detail-page 일 때만: 에디터로 이어붙인 상세 내용(HTML). 비어 있으면 imagePath 한 장으로 보여준다.
+    @Column(columnDefinition = "LONGTEXT")
+    private String detailContent;
+
     private LocalDateTime createdAt;
 
     @PrePersist

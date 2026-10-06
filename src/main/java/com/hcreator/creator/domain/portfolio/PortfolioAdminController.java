@@ -2,7 +2,9 @@ package com.hcreator.creator.domain.portfolio;
 
 import com.hcreator.creator.common.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +25,13 @@ public class PortfolioAdminController {
 
     // ===== 이미지 항목 (AI이미지/카드뉴스/상세페이지) =====
 
-    public record ItemRequest(String category, String cardNewsLayout, String name, String imagePath, String linkUrl) {}
+    public record ItemRequest(String category, String cardNewsLayout, String name, String imagePath, String linkUrl, String detailContent) {}
+
+    // 상세페이지 에디터 안 이미지용 - GIF는 MP4 + 포스터로 변환, 그 외(jpg/png 등)는 원본 그대로 저장
+    @PostMapping(value = "/items/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public S3Service.PresignedUploadResult uploadItemFile(@RequestParam("file") MultipartFile file) throws java.io.IOException {
+        return s3Service.uploadGifAsMp4(file, "portfolio");
+    }
 
     @GetMapping("/items")
     public List<PortfolioItem> listItems(@RequestParam String category) {
@@ -38,6 +46,7 @@ public class PortfolioAdminController {
                 .name(req.name())
                 .imagePath(req.imagePath())
                 .linkUrl(req.linkUrl())
+                .detailContent(req.detailContent())
                 .build();
         return itemRepository.save(item);
     }
@@ -50,6 +59,7 @@ public class PortfolioAdminController {
         item.setCardNewsLayout(req.cardNewsLayout());
         item.setName(req.name());
         item.setLinkUrl(req.linkUrl());
+        item.setDetailContent(req.detailContent()); // null 이면 상세 내용 삭제(단일 이미지로 표시)
         if (req.imagePath() != null && !req.imagePath().isBlank()) {
             item.setImagePath(req.imagePath());
         }
@@ -60,7 +70,7 @@ public class PortfolioAdminController {
     public void deleteItem(@PathVariable Long id) {
         PortfolioItem item = itemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("항목을 찾을 수 없습니다."));
-        s3Service.deleteFile(extractFileKey(item.getImagePath()));
+        s3Service.deleteFile(item.getImagePath()); // CloudFront/S3 주소를 모두 처리
         itemRepository.deleteById(id);
     }
 
@@ -101,13 +111,7 @@ public class PortfolioAdminController {
     public void deleteVideo(@PathVariable Long id) {
         PortfolioVideo video = videoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("영상을 찾을 수 없습니다."));
-        s3Service.deleteFile(extractFileKey(video.getThumbnailPath()));
+        s3Service.deleteFile(video.getThumbnailPath()); // CloudFront/S3 주소를 모두 처리
         videoRepository.deleteById(id);
-    }
-
-    private String extractFileKey(String publicUrl) {
-        if (publicUrl == null) return "";
-        int idx = publicUrl.indexOf(".amazonaws.com/");
-        return idx >= 0 ? publicUrl.substring(idx + ".amazonaws.com/".length()) : publicUrl;
     }
 }

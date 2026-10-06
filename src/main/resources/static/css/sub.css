@@ -1723,3 +1723,35 @@ input[type="file"].apply-form__input::file-selector-button:hover {
   height: 100%;
   object-fit: cover;
 }
+
+/* 포트폴리오 모달: 상세 내용(에디터 이어붙이기) 영역 */
+.portfolio-modal__content {
+  display: none;
+}
+
+.portfolio-modal__content.is-active {
+  display: block;
+}
+
+.portfolio-modal__content img,
+.portfolio-modal__content video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+}
+
+.portfolio-modal__content p,
+.portfolio-modal__content h1,
+.portfolio-modal__content h2,
+.portfolio-modal__content h3 {
+  margin: 0;
+}
+
+.portfolio-modal__loading {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
