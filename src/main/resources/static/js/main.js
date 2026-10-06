@@ -381,6 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ? data.detailContent
           : '<p>등록된 상세 내용이 없습니다.</p>';
         body.innerHTML = `<h2>${data.title ?? ''}</h2>${content}`;
+        if (window.initLazyVideos) window.initLazyVideos(body); // 상세 내용 안 영상: 화면에 보일 때만 재생
       })
       .catch(() => {
         body.innerHTML = '<p class="gif-detail-modal__loading">불러오지 못했습니다. 잠시 후 다시 시도해주세요.</p>';
@@ -529,13 +530,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== 레이지 비디오 (GIF 대체 MP4): 화면에 들어오면 재생, 벗어나면 일시정지 =====
-document.addEventListener('DOMContentLoaded', () => {
-  const videos = document.querySelectorAll('video.lazy-video');
-  if (!videos.length) return;
+// 페이지 로드 시 자동 적용되고, 동적으로 채운 영역(모달 등)은 window.initLazyVideos(영역)으로 다시 적용
+(function () {
+  let observer = null;
 
   function loadVideo(video) {
     if (video.dataset.loaded) return;
-    video.querySelectorAll('source[data-src]').forEach((source) => {
+    if (video.dataset.src) video.src = video.dataset.src;             // 에디터가 만든 <video data-src>
+    video.querySelectorAll('source[data-src]').forEach((source) => {  // 갤러리의 <video><source data-src>
       source.src = source.dataset.src;
     });
     video.load();
@@ -547,22 +549,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (promise && promise.catch) promise.catch(() => {}); // 저전력 모드 등으로 막히면 포스터 유지
   }
 
-  if (!('IntersectionObserver' in window)) {
-    videos.forEach((video) => { loadVideo(video); playVideo(video); });
-    return;
+  function getObserver() {
+    if (observer || !('IntersectionObserver' in window)) return observer;
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+        if (entry.isIntersecting) {
+          loadVideo(video);
+          playVideo(video);
+        } else {
+          video.pause();
+        }
+      });
+    }, { rootMargin: '200px 0px', threshold: 0.1 });
+    return observer;
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      const video = entry.target;
-      if (entry.isIntersecting) {
+  window.initLazyVideos = function (root) {
+    const videos = (root || document).querySelectorAll('video.lazy-video');
+    if (!videos.length) return;
+    const io = getObserver();
+    videos.forEach((video) => {
+      video.muted = true;
+      if (io) {
+        io.observe(video);
+      } else {
         loadVideo(video);
         playVideo(video);
-      } else {
-        video.pause();
       }
     });
-  }, { rootMargin: '200px 0px', threshold: 0.1 });
+  };
 
-  videos.forEach((video) => observer.observe(video));
-});
+  document.addEventListener('DOMContentLoaded', () => window.initLazyVideos(document));
+})();

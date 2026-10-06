@@ -1139,13 +1139,14 @@
   margin: 0;
 }
 
-.gif-detail-modal__body img {
-  max-width: 100%;
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
+.gif-detail-modal__body img,
+.gif-detail-modal__body video {
   display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
   margin: 0;
+  border-radius: 0;
 }
 
 /* ===========================================================

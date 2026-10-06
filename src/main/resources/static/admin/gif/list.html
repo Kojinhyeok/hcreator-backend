@@ -13,6 +13,13 @@
 		  display: inline-block;
 		  max-width: 100%;
 		}
+		#quillEditor .ql-editor video.ql-gif-video {
+		  display: block;
+		  width: 100%;
+		  max-width: 100%;
+		  height: auto;
+		  background: #f3f2fc;
+		}
 	</style>
 
 </head>
@@ -81,6 +88,8 @@
 
 					<div class="mb-3">
 						<label class="form-label">상세 내용</label>
+						<div class="form-text mb-1">이미지 버튼에서 여러 파일을 한 번에 선택하면 파일명 숫자 순서대로 이어서 들어갑니다. GIF는 자동으로 MP4로 변환돼요. 빈 줄에 커서를 두고 삽입해 주세요.</div>
+						<div id="editorUploadStatus" class="small text-primary mb-1"></div>
 						<div id="quillEditor" style="height: 300px; background:#fff;"></div>
 					</div>
 				</form>
@@ -107,6 +116,29 @@
 	const PAGE_SIZE = 15;
 	let quill;
 
+	// 에디터용 영상 블록: GIF를 변환한 MP4를 <video>로 저장 (공개 페이지에서 화면에 보일 때만 재생)
+	const BlockEmbed = Quill.import('blots/block/embed');
+	class GifVideoBlot extends BlockEmbed {
+		static create(value) {
+			const node = super.create();
+			node.setAttribute('data-src', value.src);
+			node.setAttribute('poster', value.poster);
+			node.setAttribute('muted', '');
+			node.setAttribute('loop', '');
+			node.setAttribute('playsinline', '');
+			node.setAttribute('preload', 'none');
+			node.classList.add('lazy-video');
+			return node;
+		}
+		static value(node) {
+			return { src: node.getAttribute('data-src'), poster: node.getAttribute('poster') };
+		}
+	}
+	GifVideoBlot.blotName = 'gifVideo';
+	GifVideoBlot.tagName = 'video';
+	GifVideoBlot.className = 'ql-gif-video';
+	Quill.register(GifVideoBlot);
+
 	document.addEventListener("DOMContentLoaded", function () {
 		quill = new Quill('#quillEditor', {
 			theme: 'snow',
@@ -128,28 +160,44 @@
 		document.getElementById("btnSave").addEventListener("click", saveItem);
 	});
 
-	// GIF 상세 내용(에디터) 안 이미지는 변환 없이 원본 그대로 업로드됨
+	// 에디터 이미지 버튼: 여러 파일 선택 가능, 파일명 숫자 순서대로 삽입, GIF는 서버에서 MP4로 변환
 	async function quillImageHandler() {
 		const input = document.createElement('input');
 		input.type = 'file';
 		input.accept = 'image/*';
+		input.multiple = true;
 		input.onchange = async () => {
-			const file = input.files[0];
-			if (!file) return;
-			try {
-				const formData = new FormData();
-				formData.append('file', file);
-				const result = await fetch("/api/admin/gif/upload-raw", {
-					method: "POST",
-					body: formData
-				}).then(res => res.json());
+			const files = Array.from(input.files)
+				.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+			if (!files.length) return;
 
-				const range = quill.getSelection(true);
-				quill.insertEmbed(range.index, 'image', result.publicUrl);
-				quill.setSelection(range.index + 1);
-			} catch (err) {
-				alert('이미지 업로드에 실패했습니다.');
+			const status = document.getElementById('editorUploadStatus');
+			let index = quill.getSelection(true).index;
+
+			for (let i = 0; i < files.length; i++) {
+				status.textContent = `업로드/변환 중... (${i + 1}/${files.length}) ${files[i].name}`;
+				try {
+					const formData = new FormData();
+					formData.append('file', files[i]);
+					const res = await fetch('/api/admin/gif/upload', { method: 'POST', body: formData });
+					if (!res.ok) throw new Error('upload failed');
+					const result = await res.json();
+
+					if (result.publicUrl.endsWith('.mp4')) {
+						quill.insertEmbed(index, 'gifVideo', {
+							src: result.publicUrl,
+							poster: result.publicUrl.replace(/\.mp4$/, '_poster.jpg')
+						}, 'user');
+					} else {
+						quill.insertEmbed(index, 'image', result.publicUrl, 'user');
+					}
+					index += 1;
+					quill.setSelection(index, 0, 'silent');
+				} catch (err) {
+					alert(`'${files[i].name}' 업로드에 실패했습니다.`);
+				}
 			}
+			status.textContent = '';
 		};
 		input.click();
 	}
