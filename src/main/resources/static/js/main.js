@@ -517,16 +517,40 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pagination && pagination.classList.contains('portfolio__pagination')) {
       pagination.innerHTML = '';
       if (pageCount > 1) {
-        for (let p = 1; p <= pageCount; p++) {
+        // 페이지 번호는 10개 단위로 묶어서 보여주고, ◀ ▶ 로 10개 단위 이동
+        const GROUP_SIZE = 10;
+        const groupStart = Math.floor((state.page - 1) / GROUP_SIZE) * GROUP_SIZE + 1;
+        const groupEnd = Math.min(groupStart + GROUP_SIZE - 1, pageCount);
+
+        const makeBtn = (label, onClick, extraClass, ariaLabel) => {
           const btn = document.createElement('button');
           btn.type = 'button';
-          btn.className = 'portfolio__page-btn' + (p === state.page ? ' is-active' : '');
-          btn.textContent = p;
-          btn.addEventListener('click', () => {
+          btn.className = 'portfolio__page-btn' + (extraClass ? ' ' + extraClass : '');
+          btn.textContent = label;
+          if (ariaLabel) btn.setAttribute('aria-label', ariaLabel);
+          btn.addEventListener('click', onClick);
+          pagination.appendChild(btn);
+        };
+
+        if (groupStart > 1) {
+          makeBtn('◀', () => {
+            state.page = groupStart - GROUP_SIZE; // 이전 묶음의 첫 페이지
+            renderState(state);
+          }, 'portfolio__page-btn--arrow', '이전 10페이지');
+        }
+
+        for (let p = groupStart; p <= groupEnd; p++) {
+          makeBtn(p, () => {
             state.page = p;
             renderState(state);
-          });
-          pagination.appendChild(btn);
+          }, p === state.page ? 'is-active' : '');
+        }
+
+        if (groupEnd < pageCount) {
+          makeBtn('▶', () => {
+            state.page = groupEnd + 1; // 다음 묶음의 첫 페이지
+            renderState(state);
+          }, 'portfolio__page-btn--arrow', '다음 10페이지');
         }
       }
     }

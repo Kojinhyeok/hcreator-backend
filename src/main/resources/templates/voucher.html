@@ -11,7 +11,8 @@
 
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <section class="service-hero">
+  <section class="service-hero service-hero--video">
+    <video class="service-hero__video" autoplay muted loop playsinline preload="auto" th:src="@{/videos/export-voucher-hero.mp4}"></video>
     <div class="service-hero__inner">
       <p class="service-hero__label">EXPORT VOUCHER</p>
       <h1 class="service-hero__title">수출바우처</h1>
