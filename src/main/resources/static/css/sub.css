@@ -1764,3 +1764,24 @@ input[type="file"].apply-form__input::file-selector-button:hover {
   text-align: center;
   color: var(--color-text-secondary);
 }
+/* 이달의 GIF 확대 모달 — 이미지/영상만 크게 */
+.gif-detail-modal--media .gif-detail-modal__panel {
+  padding: 0;
+  max-width: 960px;
+  background: #000;
+  overflow: hidden;
+}
+
+.gif-detail-modal--media .gif-detail-modal__body {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.gif-detail-modal--media .gif-detail-modal__close {
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.gif-gallery__item--media .gif-gallery__thumb {
+  cursor: zoom-in;
+}

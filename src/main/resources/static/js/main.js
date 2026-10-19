@@ -651,3 +651,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('DOMContentLoaded', () => window.initLazyVideos(document));
 })();
+// ===== 이달의 GIF — 클릭하면 모달로 크게 보기 =====
+document.addEventListener('DOMContentLoaded', () => {
+  const items = document.querySelectorAll('.gif-gallery__item[data-media]');
+  const modal = document.getElementById('featuredGifModal');
+  if (!items.length || !modal) return; // 이달의 GIF가 없는 페이지면 종료
+
+  const backdrop = document.getElementById('featuredGifBackdrop');
+  const closeBtn = document.getElementById('featuredGifClose');
+  const body = document.getElementById('featuredGifBody');
+
+  function openModal(src, title) {
+    body.innerHTML = '';
+    let el;
+    if (/\.mp4(\?|$)/i.test(src)) {
+      el = document.createElement('video');
+      el.muted = true;
+      el.loop = true;
+      el.autoplay = true;
+      el.playsInline = true;
+      el.setAttribute('playsinline', '');
+      el.poster = src.replace(/\.mp4(\?.*)?$/i, '_poster.jpg');
+      el.src = src;
+      const p = el.play();
+      if (p && p.catch) p.catch(() => {});
+    } else {
+      el = document.createElement('img');
+      el.src = src;
+      el.alt = title || '';
+    }
+    body.appendChild(el);
+    modal.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    body.innerHTML = ''; // 닫으면 영상도 함께 정리
+    document.body.style.overflow = '';
+  }
+
+  items.forEach((item) => {
+    item.addEventListener('click', () => {
+      const src = item.dataset.media;
+      if (src) openModal(src, item.dataset.title);
+    });
+  });
+
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+  });
+});
