@@ -1814,7 +1814,3 @@ input[type="file"].apply-form__input::file-selector-button:hover {
   min-height: 0;
   overflow-y: auto;
 }
-
-.gif-gallery__item--media .gif-gallery__thumb {
-  cursor: zoom-in;
-}
