@@ -1764,22 +1764,55 @@ input[type="file"].apply-form__input::file-selector-button:hover {
   text-align: center;
   color: var(--color-text-secondary);
 }
-/* 이달의 GIF 확대 모달 — 이미지/영상만 크게 */
+/* 이달의 GIF 확대 모달 — 상단 제목 칸 + 오른쪽 끝 X 버튼, 아래에 이미지/영상 */
 .gif-detail-modal--media .gif-detail-modal__panel {
+  display: flex;
+  flex-direction: column;
   padding: 0;
   max-width: 960px;
-  background: #000;
   overflow: hidden;
 }
 
-.gif-detail-modal--media .gif-detail-modal__body {
-  max-height: 90vh;
-  overflow-y: auto;
+.gif-media-modal__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.gif-detail-modal--media .gif-detail-modal__close {
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.9);
+.gif-media-modal__title {
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+.gif-media-modal__close {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--color-purple-bg-light);
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.gif-media-modal__close:hover {
+  background: var(--color-border);
+}
+
+.gif-detail-modal--media .gif-detail-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .gif-gallery__item--media .gif-gallery__thumb {

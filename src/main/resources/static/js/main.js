@@ -660,8 +660,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const backdrop = document.getElementById('featuredGifBackdrop');
   const closeBtn = document.getElementById('featuredGifClose');
   const body = document.getElementById('featuredGifBody');
+  const titleEl = document.getElementById('featuredGifTitle');
 
   function openModal(src, title) {
+    // 제목이 여러 줄이면 한 줄로 이어서 상단 칸에 표시
+    titleEl.textContent = (title || '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join('  ·  ');
     body.innerHTML = '';
     let el;
     if (/\.mp4(\?|$)/i.test(src)) {

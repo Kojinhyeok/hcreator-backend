@@ -61,7 +61,6 @@
             </th:block>
             <img th:unless="${#strings.endsWith(template.imagePath, '.mp4')}"
                  th:src="@{${template.imagePath}}" th:alt="${template.title}" loading="lazy" decoding="async">
-            <span class="gif-gallery__label" th:text="${template.title}">템플릿 이름</span>
           </div>
         </div>
       </div>
@@ -72,7 +71,10 @@
   <div class="gif-detail-modal gif-detail-modal--media" id="featuredGifModal">
     <div class="gif-detail-modal__backdrop" id="featuredGifBackdrop"></div>
     <div class="gif-detail-modal__panel">
-      <button type="button" class="gif-detail-modal__close" id="featuredGifClose" aria-label="닫기">×</button>
+      <div class="gif-media-modal__header">
+        <p class="gif-media-modal__title" id="featuredGifTitle"></p>
+        <button type="button" class="gif-media-modal__close" id="featuredGifClose" aria-label="닫기">×</button>
+      </div>
       <div class="gif-detail-modal__body" id="featuredGifBody"></div>
     </div>
   </div>
