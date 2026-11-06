@@ -7,6 +7,27 @@
 	<title>서비스 문의 내역 - H CREATOR</title>
 	<link href="../css/app.css" rel="stylesheet">
 	<link href="../css/custom.css" rel="stylesheet">
+	<style>
+		.cmt-list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; border: 1px solid #e3e6ee; border-radius: 6px; padding: 8px; background: #fafbfd; }
+		.cmt-item { padding: 6px 4px; border-bottom: 1px solid #eef0f5; }
+		.cmt-item:last-child { border-bottom: 0; }
+		.cmt-head { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }
+		.cmt-author { font-weight: 700; color: #3b3f5c; }
+		.cmt-time { color: #8b90a7; }
+		.cmt-actions { margin-left: auto; display: flex; gap: 8px; }
+		.cmt-actions a { text-decoration: none; }
+		.cmt-body { white-space: pre-wrap; word-break: break-word; font-size: 13px; margin-top: 2px; }
+		.cmt-form { flex: 0 0 auto; margin-top: 8px; }
+		.inq-modal-body { padding: 12px 16px; }
+		.inq-dl { font-size: 13px; margin-bottom: 8px; display: grid; grid-template-columns: 90px 1fr; gap: 4px 10px; }
+		.inq-dl dt { font-weight: 600; color: #5a5f7a; margin: 0; }
+		.inq-dl dd { margin: 0; word-break: break-all; }
+		@media (min-width: 992px) {
+			#detailModal .inq-modal-body { height: calc(100vh - 170px); overflow: hidden; }
+			#detailModal .inq-col { height: 100%; overflow-y: auto; }
+			#detailModal .inq-col--comments { display: flex; flex-direction: column; overflow: hidden; }
+		}
+	</style>
 </head>
 
 <body data-page="inquiry-list" data-base="../">
@@ -29,6 +50,7 @@
 								<th>제목</th>
 								<th>회사명</th>
 								<th>담당자</th>
+								<th style="width:100px;">상태</th>
 								<th style="width:130px;">관리</th>
 							</tr>
 							</thead>
@@ -42,13 +64,13 @@
 </div>
 
 <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered modal-lg">
+	<div class="modal-dialog modal-dialog-centered modal-xl">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title">문의 상세</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body detail-view" id="detailBody"></div>
+			<div class="modal-body detail-view inq-modal-body" id="detailBody"></div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
 			</div>
@@ -58,6 +80,7 @@
 
 <script src="../js/app.js"></script>
 <script src="../js/common.js"></script>
+<script src="../js/comments.js"></script>
 <script>
 	let inquiryList = [];
 
@@ -72,6 +95,11 @@
 		return dateStr ? dateStr.replace('T', ' ').substring(0, 16) : '-';
 	}
 
+	function statusBadge(status) {
+		const done = status === '연락 완료';
+		return `<span class="badge bg-${done ? 'success' : 'secondary'}">${escapeHtml(status || '대기')}</span>`;
+	}
+
 	function loadInquiries() {
 		fetch("/api/admin/inquiry")
 			.then(res => res.json())
@@ -79,14 +107,15 @@
 				inquiryList = list;
 				const tbody = document.querySelector("#inquiryTable tbody");
 				tbody.innerHTML = list.length === 0
-					? '<tr><td colspan="6" class="text-center py-4">접수된 문의가 없습니다.</td></tr>'
+					? '<tr><td colspan="7" class="text-center py-4">접수된 문의가 없습니다.</td></tr>'
 					: list.map((item, index) => `
 						<tr>
 							<td class="align-middle">${formatDate(item.createdAt)}</td>
-							<td class="align-middle">${inquiryServiceLabel[item.inquiryService] ?? item.inquiryService}</td>
-							<td class="align-middle">${item.title ?? ''}</td>
-							<td class="align-middle">${item.companyName ?? ''}</td>
-							<td class="align-middle">${item.contactName ?? ''}</td>
+							<td class="align-middle">${escapeHtml(inquiryServiceLabel[item.inquiryService] ?? item.inquiryService)}</td>
+							<td class="align-middle">${escapeHtml(item.title)}</td>
+							<td class="align-middle">${escapeHtml(item.companyName)}</td>
+							<td class="align-middle">${escapeHtml(item.contactName)}</td>
+							<td class="align-middle">${statusBadge(item.status)}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="viewInquiry(${index})">보기</button>
 								<button class="btn btn-sm btn-outline-danger" onclick="deleteInquiry(${item.id})">삭제</button>
@@ -98,20 +127,56 @@
 
 	function viewInquiry(index) {
 		const item = inquiryList[index];
+		const fileUrl = item.attachmentPath && /^(https?:\/\/|\/)/.test(item.attachmentPath) ? escapeHtml(item.attachmentPath) : null;
 		document.getElementById("detailBody").innerHTML = `
-			<dl class="row mb-0">
-				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
-				<dt class="col-sm-3">문의 서비스</dt><dd class="col-sm-9">${inquiryServiceLabel[item.inquiryService] ?? item.inquiryService}</dd>
-				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
-				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
-				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
-				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
-				<dt class="col-sm-3">제목</dt><dd class="col-sm-9">${item.title ?? '-'}</dd>
-				<dt class="col-sm-3">내용</dt><dd class="col-sm-9" style="white-space:pre-wrap;">${item.content ?? '-'}</dd>
-				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.attachmentPath ? `<a href="${item.attachmentPath}" target="_blank">파일 보기</a>` : '-'}</dd>
-			</dl>
+			<div class="row g-3 h-100">
+				<div class="col-lg-6 inq-col">
+					<dl class="inq-dl">
+						<dt>접수일시</dt><dd>${formatDate(item.createdAt)}</dd>
+						<dt>문의 서비스</dt><dd>${escapeHtml(inquiryServiceLabel[item.inquiryService] ?? item.inquiryService)}</dd>
+						<dt>회사명</dt><dd>${escapeHtml(item.companyName) || '-'}</dd>
+						<dt>담당자</dt><dd>${escapeHtml(item.contactName) || '-'}</dd>
+						<dt>연락처</dt><dd>${escapeHtml(item.contactPhone) || '-'}</dd>
+						<dt>이메일</dt><dd>${escapeHtml(item.contactEmail) || '-'}</dd>
+						<dt>제목</dt><dd>${escapeHtml(item.title) || '-'}</dd>
+						<dt>내용</dt><dd style="white-space:pre-wrap;">${escapeHtml(item.content) || '-'}</dd>
+						<dt>첨부파일</dt><dd>${fileUrl ? `<a href="${fileUrl}" target="_blank" rel="noopener">파일 보기</a>` : '-'}</dd>
+					</dl>
+					<div class="d-flex align-items-end gap-2">
+						<div>
+							<label class="form-label small mb-1">상태</label>
+							<select class="form-select form-select-sm" id="inquiryStatusSelect">
+								<option value="대기" ${item.status !== '연락 완료' ? 'selected' : ''}>대기</option>
+								<option value="연락 완료" ${item.status === '연락 완료' ? 'selected' : ''}>연락 완료</option>
+							</select>
+						</div>
+						<button class="btn btn-primary btn-sm" onclick="saveInquiryStatus(${item.id})">상태 저장</button>
+					</div>
+				</div>
+				<div class="col-lg-6 inq-col inq-col--comments">
+					<h6 class="mb-1 small">메모 (직원 댓글)</h6>
+					<div id="inquiryComments" class="d-flex flex-column flex-grow-1" style="min-height:0;"></div>
+				</div>
+			</div>
 		`;
+		initComments(document.getElementById("inquiryComments"), 'inquiry', item.id);
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
+	}
+
+	function saveInquiryStatus(id) {
+		const status = document.getElementById("inquiryStatusSelect").value;
+		fetch(`/api/admin/inquiry/${id}/status`, {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ status })
+		}).then(res => {
+			if (res.ok) {
+				alert("저장되었습니다.");
+				loadInquiries();
+			} else {
+				alert("저장에 실패했습니다.");
+			}
+		});
 	}
 
 	function deleteInquiry(id) {

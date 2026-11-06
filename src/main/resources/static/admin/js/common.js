@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
 				.then(html => {
 					headerEl.innerHTML = html;
 					initLogoutButton();
+					initProfileModal();
 				})
 		);
 	}
@@ -152,4 +153,52 @@ function initLogoutButton() {
 				});
 		});
 	}
+}
+
+function initProfileModal() {
+	var btn = document.getElementById("btnProfile");
+	var modalEl = document.getElementById("profileModal");
+	if (!btn || !modalEl) return;
+
+	var msg = document.getElementById("profileMsg");
+
+	btn.addEventListener("click", function (e) {
+		e.preventDefault();
+		document.getElementById("profileName").value = (window._adminUser && window._adminUser.name) || "";
+		document.getElementById("profileCurrentPw").value = "";
+		document.getElementById("profileNewPw").value = "";
+		document.getElementById("profileNewPw2").value = "";
+		msg.textContent = "";
+		bootstrap.Modal.getOrCreateInstance(modalEl).show();
+	});
+
+	document.getElementById("profileSave").addEventListener("click", function () {
+		var name = document.getElementById("profileName").value.trim();
+		var currentPassword = document.getElementById("profileCurrentPw").value;
+		var newPassword = document.getElementById("profileNewPw").value;
+		var newPassword2 = document.getElementById("profileNewPw2").value;
+
+		if (newPassword && newPassword !== newPassword2) {
+			msg.textContent = "새 비밀번호 확인이 일치하지 않습니다.";
+			return;
+		}
+
+		fetch("/api/auth/profile", {
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ name: name, currentPassword: currentPassword, newPassword: newPassword })
+		}).then(function (res) {
+			return res.json().catch(function () { return {}; }).then(function (data) {
+				if (!res.ok) {
+					msg.textContent = data.message || "저장에 실패했습니다.";
+					return;
+				}
+				var nameEl = document.getElementById("headerUserName");
+				if (nameEl) nameEl.textContent = data.name || name || "관리자";
+				if (window._adminUser) window._adminUser.name = data.name || name;
+				bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+				alert("저장되었습니다.");
+			});
+		});
+	});
 }

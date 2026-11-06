@@ -26,6 +26,7 @@ public class AdminSeeder implements CommandLineRunner {
         if (memberRepository.findByUsername(initUsername).isEmpty()) {
             Member admin = Member.builder()
                     .username(initUsername)
+                    .name("관리자")
                     .password(passwordEncoder.encode(initPassword))
                     .role("ADMIN")
                     .build();

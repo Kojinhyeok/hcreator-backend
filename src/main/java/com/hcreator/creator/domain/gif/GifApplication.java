@@ -21,6 +21,11 @@ public class GifApplication {
     private String contactPhone;
     private String contactEmail;
 
+    private String clinicalAmount; // 임상시험 금액 (자유 입력)
+
+    @Column(length = 1000)
+    private String nasPath; // NAS 경로 (링크 텍스트)
+
     private String pointColor;
     private String bgColor;
     private String bgEffect;
@@ -35,9 +40,10 @@ public class GifApplication {
     private String status = "대기중"; // 대기중 / 작업중 / 전달완료
 
     @Column(columnDefinition = "TEXT")
-    private String memo; // 내부 직원용 코멘트
+    private String memo; // (구) 내부 메모 - 이제는 댓글(ApplyComment)을 사용, 기존 데이터 보존용
 
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     @Builder.Default
     private List<GifApplicationRow> rows = new ArrayList<>();
 

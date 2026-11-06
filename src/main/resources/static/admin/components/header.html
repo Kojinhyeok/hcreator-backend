@@ -10,9 +10,46 @@
 					<span class="text-dark" id="headerUserName">관리자</span>
 				</a>
 				<div class="dropdown-menu dropdown-menu-end">
+					<a class="dropdown-item" href="#" id="btnProfile"><i class="align-middle me-1" data-feather="user"></i> 내 정보 변경</a>
 					<a class="dropdown-item" href="#" id="btnLogout"><i class="align-middle me-1" data-feather="log-out"></i> 로그아웃</a>
 				</div>
 			</li>
 		</ul>
 	</div>
 </nav>
+
+<div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">내 정보 변경</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<div class="mb-3">
+					<label class="form-label" for="profileName">표시 이름 (메모 작성자로 보입니다)</label>
+					<input type="text" class="form-control" id="profileName" maxlength="50">
+				</div>
+				<hr>
+				<p class="small text-muted mb-2">비밀번호를 바꾸려면 아래를 입력하세요. (바꾸지 않으려면 비워 두세요)</p>
+				<div class="mb-2">
+					<label class="form-label" for="profileCurrentPw">현재 비밀번호</label>
+					<input type="password" class="form-control" id="profileCurrentPw" autocomplete="current-password">
+				</div>
+				<div class="mb-2">
+					<label class="form-label" for="profileNewPw">새 비밀번호 (8자 이상)</label>
+					<input type="password" class="form-control" id="profileNewPw" autocomplete="new-password">
+				</div>
+				<div class="mb-2">
+					<label class="form-label" for="profileNewPw2">새 비밀번호 확인</label>
+					<input type="password" class="form-control" id="profileNewPw2" autocomplete="new-password">
+				</div>
+				<p class="small text-danger mb-0" id="profileMsg"></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+				<button type="button" class="btn btn-primary" id="profileSave">저장</button>
+			</div>
+		</div>
+	</div>
+</div>

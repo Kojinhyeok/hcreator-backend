@@ -22,4 +22,7 @@ public class GifApplicationRow {
     private String testItem;
     private String templateNo;
     private String subjectNo;
+
+    @Column(length = 1000)
+    private String memo; // 행별 메모
 }

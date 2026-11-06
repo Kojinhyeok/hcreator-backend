@@ -30,10 +30,19 @@ public class Inquiry {
 
     private String attachmentPath;
 
+    @Column(length = 20)
+    @Builder.Default
+    private String status = "대기"; // 대기 / 연락 완료
+
     @JsonIgnore
     private String password; // 해시 저장, 목록 응답엔 노출 안 함
 
     private LocalDateTime createdAt;
+
+    /** 기존 데이터(status 비어 있음)도 "대기"로 보이게 한다 */
+    public String getStatus() {
+        return status == null || status.isBlank() ? "대기" : status;
+    }
 
     @PrePersist
     protected void onCreate() {

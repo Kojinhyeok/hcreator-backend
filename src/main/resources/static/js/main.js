@@ -218,6 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
       contactName: form.contactName.value,
       contactPhone: form.contactPhone.value,
       contactEmail: form.contactEmail.value,
+      clinicalAmount: form.clinicalAmount ? form.clinicalAmount.value : '',
       pointColor: form.pointColor.value,
       bgColor: form.bgColor.value,
       bgEffect: form.bgEffect.value,
@@ -710,4 +711,57 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
   });
+});
+
+// ===== GIF 템플릿 검색 (제목 + 상세 내용 텍스트) =====
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('gifSearchInput');
+  if (!input) return;
+
+  const items = document.querySelectorAll('.gif-gallery__item[data-id]');
+  const emptyMsg = document.getElementById('gifSearchEmpty');
+  const clearBtn = document.getElementById('gifSearchClear');
+  let timer = null;
+  let seq = 0;
+
+  function showAll() {
+    items.forEach((el) => { el.hidden = false; });
+    if (emptyMsg) emptyMsg.hidden = true;
+    if (clearBtn) clearBtn.hidden = true;
+  }
+
+  function applyResult(idSet) {
+    let shown = 0;
+    items.forEach((el) => {
+      const match = idSet.has(el.getAttribute('data-id'));
+      el.hidden = !match;
+      if (match) shown++;
+    });
+    if (emptyMsg) emptyMsg.hidden = shown > 0;
+  }
+
+  function search() {
+    const q = input.value.trim();
+    if (!q) { showAll(); return; }
+    if (clearBtn) clearBtn.hidden = false;
+    const mySeq = ++seq;
+    fetch('/api/gif/search?q=' + encodeURIComponent(q))
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((ids) => {
+        if (mySeq !== seq) return; // 오래된 응답 무시
+        applyResult(new Set(ids.map(String)));
+      })
+      .catch(() => { /* 검색 실패 시 목록 유지 */ });
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(search, 300);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(timer); search(); }
+  });
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => { input.value = ''; seq++; showAll(); input.focus(); });
+  }
 });

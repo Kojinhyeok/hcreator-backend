@@ -18,6 +18,9 @@ public class Member {
 
     private String password;
 
+    @Column(length = 50)
+    private String name; // 화면에 표시되는 이름 (댓글 작성자 등)
+
     @Builder.Default
     @Column(length = 20)
     private String role = "ADMIN";

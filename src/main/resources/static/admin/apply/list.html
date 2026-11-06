@@ -7,6 +7,31 @@
 	<title>서비스 신청 내역 - H CREATOR</title>
 	<link href="../css/app.css" rel="stylesheet">
 	<link href="../css/custom.css" rel="stylesheet">
+	<style>
+		.cmt-list { flex: 1 1 auto; min-height: 120px; overflow-y: auto; border: 1px solid #e3e6ee; border-radius: 6px; padding: 8px; background: #fafbfd; }
+		.cmt-item { padding: 6px 4px; border-bottom: 1px solid #eef0f5; }
+		.cmt-item:last-child { border-bottom: 0; }
+		.cmt-head { display: flex; align-items: baseline; gap: 8px; font-size: 12px; }
+		.cmt-author { font-weight: 700; color: #3b3f5c; }
+		.cmt-time { color: #8b90a7; }
+		.cmt-actions { margin-left: auto; display: flex; gap: 8px; }
+		.cmt-actions a { text-decoration: none; }
+		.cmt-body { white-space: pre-wrap; word-break: break-word; font-size: 13px; margin-top: 2px; }
+		.cmt-form { flex: 0 0 auto; margin-top: 8px; }
+		.apply-modal-body { padding: 12px 16px; }
+		.apply-dl { font-size: 13px; margin-bottom: 8px; display: grid; grid-template-columns: 90px 1fr 90px 1fr; gap: 3px 10px; }
+		.apply-dl dt { font-weight: 600; color: #5a5f7a; margin: 0; }
+		.apply-dl dd { margin: 0; word-break: break-all; }
+		.apply-dl .full { grid-column: 2 / 5; }
+		.apply-rows { font-size: 13px; }
+		.apply-rows th, .apply-rows td { padding: 3px 6px; vertical-align: middle; }
+		.apply-rows input { font-size: 12px; padding: 2px 6px; height: 26px; }
+		@media (min-width: 992px) {
+			#detailModal .apply-modal-body { height: calc(100vh - 170px); overflow: hidden; }
+			#detailModal .apply-col { height: 100%; overflow-y: auto; }
+			#detailModal .apply-col--comments { display: flex; flex-direction: column; overflow: hidden; }
+		}
+	</style>
 </head>
 
 <body data-page="apply-list" data-base="../">
@@ -17,7 +42,10 @@
 
 		<main class="content">
 			<div class="container-fluid p-0">
-				<h1 class="h3 mb-3"><strong>서비스 신청 내역</strong></h1>
+				<div class="d-flex justify-content-between align-items-center mb-3">
+					<h1 class="h3 mb-0"><strong>서비스 신청 내역</strong></h1>
+					<button type="button" class="btn btn-success btn-sm" onclick="window.location.href='/api/admin/apply/export'">엑셀 다운로드</button>
+				</div>
 
 				<ul class="nav nav-tabs mb-3" id="applyTabs">
 					<li class="nav-item"><a class="nav-link active" href="#" data-tab="gif">GIF 신청</a></li>
@@ -73,13 +101,13 @@
 
 <!-- 상세보기 모달 (공용, 내용만 채워넣음) -->
 <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered modal-lg">
+	<div class="modal-dialog modal-dialog-centered modal-xl">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title">신청 상세</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body detail-view" id="detailBody"></div>
+			<div class="modal-body detail-view apply-modal-body" id="detailBody"></div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
 			</div>
@@ -89,6 +117,7 @@
 
 <script src="../js/app.js"></script>
 <script src="../js/common.js"></script>
+<script src="../js/comments.js"></script>
 <script>
 	let gifList = [];
 	let serviceList = [];
@@ -130,9 +159,9 @@
 						<tr>
 							<td class="align-middle">${total - index}</td>
 							<td class="align-middle">${formatDate(item.createdAt)}</td>
-							<td class="align-middle">${item.companyName ?? ''}</td>
-							<td class="align-middle">${item.contactName ?? ''}</td>
-							<td class="align-middle">${item.contactPhone ?? ''}</td>
+							<td class="align-middle">${escapeHtml(item.companyName)}</td>
+							<td class="align-middle">${escapeHtml(item.contactName)}</td>
+							<td class="align-middle">${escapeHtml(item.contactPhone)}</td>
 							<td class="align-middle">${statusBadge(item.status)}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="viewGif(${index})">보기</button>
@@ -146,74 +175,105 @@
 	function statusBadge(status) {
 		const map = { '대기중': 'secondary', '작업중': 'warning', '전달완료': 'success' };
 		const color = map[status] ?? 'secondary';
-		return `<span class="badge bg-${color}">${status ?? '대기중'}</span>`;
+		return `<span class="badge bg-${color}">${escapeHtml(status ?? '대기중')}</span>`;
+	}
+
+	function safeLink(url) {
+		return url && /^(https?:\/\/|\/)/.test(url) ? escapeHtml(url) : null;
 	}
 
 	function viewGif(index) {
 		const item = gifList[index];
-		const rowsHtml = (item.rows || []).map(r => `
+		const rows = item.rows || [];
+		const rowsHtml = rows.map((r, i) => `
 			<tr>
-				<td>${r.reportNo ?? ''}</td>
-				<td>${r.testItem ?? ''}</td>
-				<td>${r.templateNo ?? ''}</td>
-				<td>${r.subjectNo ?? ''}</td>
+				<td class="text-center">${i + 1}</td>
+				<td>${escapeHtml(r.reportNo)}</td>
+				<td>${escapeHtml(r.testItem)}</td>
+				<td>${escapeHtml(r.templateNo)}</td>
+				<td>${escapeHtml(r.subjectNo)}</td>
+				<td><input type="text" class="form-control row-memo" data-row-id="${r.id}" maxlength="1000" value="${escapeHtml(r.memo)}" placeholder="메모"></td>
 			</tr>
-		`).join("") || '<tr><td colspan="4" class="text-center text-muted">등록된 행 없음</td></tr>';
+		`).join("") || '<tr><td colspan="6" class="text-center text-muted">등록된 행 없음</td></tr>';
+
+		const fileUrl = safeLink(item.filePath);
+		const legacyMemo = item.memo && item.memo.trim()
+			? `<div class="alert alert-secondary py-1 px-2 small mb-2" style="white-space:pre-wrap;"><strong>기존 메모</strong><br>${escapeHtml(item.memo)}</div>`
+			: '';
 
 		document.getElementById("detailBody").innerHTML = `
-			<dl class="row mb-0">
-				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
-				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
-				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
-				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
-				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
-				<dt class="col-sm-3">포인트컬러</dt><dd class="col-sm-9">${item.pointColor ?? '-'}</dd>
-				<dt class="col-sm-3">배경색</dt><dd class="col-sm-9">${item.bgColor ?? '-'}</dd>
-				<dt class="col-sm-3">배경 효과</dt><dd class="col-sm-9">${item.bgEffect ?? '-'}</dd>
-				<dt class="col-sm-3">용량</dt><dd class="col-sm-9">${item.quantity ?? '-'}</dd>
-				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.filePath ? `<a href="${item.filePath}" target="_blank">파일 보기</a>` : '-'}</dd>
-				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
-			</dl>
-			<hr>
-			<h6>신청 목록</h6>
-			<table class="table table-sm table-bordered mb-4">
-				<thead><tr><th>보고서 번호</th><th>시험 항목</th><th>템플릿 번호</th><th>피험자 번호</th></tr></thead>
-				<tbody>${rowsHtml}</tbody>
-			</table>
-			<hr>
-			<div class="row g-2">
-				<div class="col-sm-4">
-					<label class="form-label">상태</label>
-					<select class="form-select" id="gifStatusSelect">
-						<option value="대기중" ${item.status === '대기중' || !item.status ? 'selected' : ''}>대기중</option>
-						<option value="작업중" ${item.status === '작업중' ? 'selected' : ''}>작업중</option>
-						<option value="전달완료" ${item.status === '전달완료' ? 'selected' : ''}>전달완료</option>
-					</select>
+			<div class="row g-3 h-100">
+				<div class="col-lg-7 apply-col">
+					<dl class="apply-dl">
+						<dt>접수일시</dt><dd>${formatDate(item.createdAt)}</dd>
+						<dt>회사명</dt><dd>${escapeHtml(item.companyName) || '-'}</dd>
+						<dt>담당자</dt><dd>${escapeHtml(item.contactName) || '-'}</dd>
+						<dt>연락처</dt><dd>${escapeHtml(item.contactPhone) || '-'}</dd>
+						<dt>이메일</dt><dd>${escapeHtml(item.contactEmail) || '-'}</dd>
+						<dt>임상시험 금액</dt><dd>${escapeHtml(item.clinicalAmount) || '-'}</dd>
+						<dt>포인트컬러</dt><dd>${escapeHtml(item.pointColor) || '-'}</dd>
+						<dt>배경색</dt><dd>${escapeHtml(item.bgColor) || '-'}</dd>
+						<dt>배경 효과</dt><dd>${escapeHtml(item.bgEffect) || '-'}</dd>
+						<dt>용량</dt><dd>${escapeHtml(item.quantity) || '-'}</dd>
+						<dt>첨부파일</dt><dd class="full">${fileUrl ? `<a href="${fileUrl}" target="_blank" rel="noopener">파일 보기</a>` : '-'}</dd>
+						<dt>기타사항</dt><dd class="full" style="white-space:pre-wrap;">${escapeHtml(item.etcNote) || '-'}</dd>
+					</dl>
+
+					<div class="row g-2 mb-2">
+						<div class="col-sm-4">
+							<label class="form-label small mb-1">상태</label>
+							<select class="form-select form-select-sm" id="gifStatusSelect">
+								<option value="대기중" ${item.status === '대기중' || !item.status ? 'selected' : ''}>대기중</option>
+								<option value="작업중" ${item.status === '작업중' ? 'selected' : ''}>작업중</option>
+								<option value="전달완료" ${item.status === '전달완료' ? 'selected' : ''}>전달완료</option>
+							</select>
+						</div>
+						<div class="col-sm-8">
+							<label class="form-label small mb-1">NAS 경로</label>
+							<input type="text" class="form-control form-control-sm" id="gifNasInput" maxlength="1000" value="${escapeHtml(item.nasPath)}" placeholder="NAS 링크를 입력하세요">
+						</div>
+					</div>
+
+					<h6 class="mb-1 small">신청 목록</h6>
+					<table class="table table-sm table-bordered apply-rows mb-2">
+						<thead><tr><th style="width:44px;">번호</th><th>보고서 번호</th><th>시험 항목</th><th>템플릿 번호</th><th>피험자 번호</th><th style="width:26%;">메모</th></tr></thead>
+						<tbody>${rowsHtml}</tbody>
+					</table>
+
+					<div class="text-end">
+						<button class="btn btn-primary btn-sm" onclick="saveGif(${item.id})">상태 / NAS 경로 / 행 메모 저장</button>
+					</div>
 				</div>
-				<div class="col-sm-8">
-					<label class="form-label">메모 (내부용)</label>
-					<textarea class="form-control" id="gifMemoInput" rows="2">${item.memo ?? ''}</textarea>
+
+				<div class="col-lg-5 apply-col apply-col--comments">
+					<h6 class="mb-1 small">메모 (직원 댓글)</h6>
+					${legacyMemo}
+					<div id="gifComments" class="d-flex flex-column flex-grow-1" style="min-height:0;"></div>
 				</div>
-			</div>
-			<div class="text-end mt-3">
-				<button class="btn btn-primary btn-sm" onclick="saveGifStatus(${item.id})">상태/메모 저장</button>
 			</div>
 		`;
+		initComments(document.getElementById("gifComments"), 'gif', item.id);
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
 	}
 
-	function saveGifStatus(id) {
+	function saveGif(id) {
 		const status = document.getElementById("gifStatusSelect").value;
-		const memo = document.getElementById("gifMemoInput").value;
+		const nasPath = document.getElementById("gifNasInput").value;
+		const rowMemos = Array.from(document.querySelectorAll("#detailBody .row-memo")).map(el => ({
+			id: Number(el.dataset.rowId),
+			memo: el.value
+		}));
 
 		fetch(`/api/admin/apply/gif/${id}`, {
 			method: "PUT",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ status, memo })
+			body: JSON.stringify({ status, nasPath, rowMemos })
 		}).then(res => {
 			if (res.ok) {
 				alert("저장되었습니다.");
 				loadGif();
+			} else {
+				alert("저장에 실패했습니다.");
 			}
 		});
 	}
@@ -238,10 +298,10 @@
 					: list.map((item, index) => `
 						<tr>
 							<td class="align-middle">${formatDate(item.createdAt)}</td>
-							<td class="align-middle">${serviceTypeLabel[item.serviceType] ?? item.serviceType}</td>
-							<td class="align-middle">${item.companyName ?? ''}</td>
-							<td class="align-middle">${item.contactName ?? ''}</td>
-							<td class="align-middle">${item.contactPhone ?? ''}</td>
+							<td class="align-middle">${escapeHtml(serviceTypeLabel[item.serviceType] ?? item.serviceType)}</td>
+							<td class="align-middle">${escapeHtml(item.companyName)}</td>
+							<td class="align-middle">${escapeHtml(item.contactName)}</td>
+							<td class="align-middle">${escapeHtml(item.contactPhone)}</td>
 							<td class="align-middle">
 								<button class="btn btn-sm btn-outline-primary" onclick="viewService(${index})">보기</button>
 								<button class="btn btn-sm btn-outline-danger" onclick="deleteService(${item.id})">삭제</button>
@@ -257,38 +317,40 @@
 
 		if (item.serviceType === 'detail-page') {
 			extraRows = `
-				<dt class="col-sm-3">제품명</dt><dd class="col-sm-9">${item.productName ?? '-'}</dd>
-				<dt class="col-sm-3">출시 예정일</dt><dd class="col-sm-9">${item.launchDate ?? '-'}</dd>
-				<dt class="col-sm-3">제품컷 촬영</dt><dd class="col-sm-9">${item.needsShooting ?? '-'}</dd>
-				<dt class="col-sm-3">기획안 유무</dt><dd class="col-sm-9">${item.hasPlan ?? '-'}</dd>
-				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
+				<dt class="col-sm-3">제품명</dt><dd class="col-sm-9">${escapeHtml(item.productName) || '-'}</dd>
+				<dt class="col-sm-3">출시 예정일</dt><dd class="col-sm-9">${escapeHtml(item.launchDate) || '-'}</dd>
+				<dt class="col-sm-3">제품컷 촬영</dt><dd class="col-sm-9">${escapeHtml(item.needsShooting) || '-'}</dd>
+				<dt class="col-sm-3">기획안 유무</dt><dd class="col-sm-9">${escapeHtml(item.hasPlan) || '-'}</dd>
+				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${escapeHtml(item.etcNote) || '-'}</dd>
 			`;
 		} else if (item.serviceType === 'blog') {
 			extraRows = `
-				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${item.brandName ?? '-'}</dd>
-				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${item.attachmentPath ? `<a href="${item.attachmentPath}" target="_blank">파일 보기</a>` : '-'}</dd>
-				<dt class="col-sm-3">홍보 내용</dt><dd class="col-sm-9">${item.promoContent ?? '-'}</dd>
-				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${item.etcNote ?? '-'}</dd>
+				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${escapeHtml(item.brandName) || '-'}</dd>
+				<dt class="col-sm-3">첨부파일</dt><dd class="col-sm-9">${safeLink(item.attachmentPath) ? `<a href="${safeLink(item.attachmentPath)}" target="_blank" rel="noopener">파일 보기</a>` : '-'}</dd>
+				<dt class="col-sm-3">홍보 내용</dt><dd class="col-sm-9" style="white-space:pre-wrap;">${escapeHtml(item.promoContent) || '-'}</dd>
+				<dt class="col-sm-3">기타사항</dt><dd class="col-sm-9">${escapeHtml(item.etcNote) || '-'}</dd>
 			`;
 		} else if (item.serviceType === 'video') {
 			extraRows = `
-				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${item.brandName ?? '-'}</dd>
-				<dt class="col-sm-3">영상 형식</dt><dd class="col-sm-9">${item.videoFormat ?? '-'}</dd>
-				<dt class="col-sm-3">영상 내용</dt><dd class="col-sm-9">${item.videoContent ?? '-'}</dd>
-				<dt class="col-sm-3">요청사항</dt><dd class="col-sm-9">${item.requestNote ?? '-'}</dd>
+				<dt class="col-sm-3">브랜드명</dt><dd class="col-sm-9">${escapeHtml(item.brandName) || '-'}</dd>
+				<dt class="col-sm-3">영상 형식</dt><dd class="col-sm-9">${escapeHtml(item.videoFormat) || '-'}</dd>
+				<dt class="col-sm-3">영상 내용</dt><dd class="col-sm-9">${escapeHtml(item.videoContent) || '-'}</dd>
+				<dt class="col-sm-3">요청사항</dt><dd class="col-sm-9">${escapeHtml(item.requestNote) || '-'}</dd>
 			`;
 		}
 
 		document.getElementById("detailBody").innerHTML = `
+			<div class="apply-col">
 			<dl class="row mb-0">
-				<dt class="col-sm-3">구분</dt><dd class="col-sm-9">${serviceTypeLabel[item.serviceType] ?? item.serviceType}</dd>
+				<dt class="col-sm-3">구분</dt><dd class="col-sm-9">${escapeHtml(serviceTypeLabel[item.serviceType] ?? item.serviceType)}</dd>
 				<dt class="col-sm-3">접수일시</dt><dd class="col-sm-9">${formatDate(item.createdAt)}</dd>
-				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${item.companyName ?? '-'}</dd>
-				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${item.contactName ?? '-'}</dd>
-				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${item.contactPhone ?? '-'}</dd>
-				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${item.contactEmail ?? '-'}</dd>
+				<dt class="col-sm-3">회사명</dt><dd class="col-sm-9">${escapeHtml(item.companyName) || '-'}</dd>
+				<dt class="col-sm-3">담당자</dt><dd class="col-sm-9">${escapeHtml(item.contactName) || '-'}</dd>
+				<dt class="col-sm-3">연락처</dt><dd class="col-sm-9">${escapeHtml(item.contactPhone) || '-'}</dd>
+				<dt class="col-sm-3">이메일</dt><dd class="col-sm-9">${escapeHtml(item.contactEmail) || '-'}</dd>
 				${extraRows}
 			</dl>
+			</div>
 		`;
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
 	}

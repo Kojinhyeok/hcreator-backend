@@ -1814,3 +1814,47 @@ input[type="file"].apply-form__input::file-selector-button:hover {
   min-height: 0;
   overflow-y: auto;
 }
+
+/* ===== GIF 템플릿 검색 ===== */
+.gif-search {
+  position: relative;
+  max-width: 480px;
+  margin: 0 0 24px;
+}
+
+.gif-search__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px 0 16px;
+  border: 1px solid var(--color-border, #d9d9e3);
+  border-radius: 8px;
+  font-size: var(--fs-base);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.gif-search__input:focus {
+  outline: none;
+  border-color: #534AB7;
+}
+
+.gif-search__clear {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #777;
+}
+
+.gif-search__clear[hidden],
+.gif-gallery__item[hidden],
+.gif-gallery__empty[hidden] {
+  display: none;
+}

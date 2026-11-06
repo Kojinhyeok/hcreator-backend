@@ -23,6 +23,7 @@ public class ApplyController {
 
     public record GifApplyRequest(
             String companyName, String contactName, String contactPhone, String contactEmail,
+            String clinicalAmount,
             String pointColor, String bgColor, String bgEffect, String quantity, String filePath,
             String etcNote, List<GifRowRequest> rows
     ) {}
@@ -32,6 +33,7 @@ public class ApplyController {
         GifApplication application = GifApplication.builder()
                 .companyName(req.companyName()).contactName(req.contactName())
                 .contactPhone(req.contactPhone()).contactEmail(req.contactEmail())
+                .clinicalAmount(req.clinicalAmount())
                 .pointColor(req.pointColor()).bgColor(req.bgColor()).bgEffect(req.bgEffect())
                 .quantity(req.quantity()).filePath(req.filePath()).etcNote(req.etcNote())
                 .build();

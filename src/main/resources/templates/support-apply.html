@@ -11,7 +11,8 @@
 
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <section class="service-hero">
+  <section class="service-hero service-hero--video">
+    <video class="service-hero__video" autoplay muted loop playsinline th:src="@{/videos/support-apply-hero.mp4}"></video>
     <div class="service-hero__inner">
       <p class="service-hero__label">SERVICE APPLY</p>
       <h1 class="service-hero__title">서비스 신청</h1>
@@ -69,6 +70,13 @@
 
         <!-- GIF 전용 필드 -->
         <div class="apply-form__fieldset" data-fieldset="gif">
+
+        <div class="apply-form__row">
+            <div class="apply-form__group">
+            <label class="apply-form__label" for="clinicalAmount">임상시험 금액</label>
+            <input type="text" id="clinicalAmount" name="clinicalAmount" class="apply-form__input" placeholder="예: 5,000,000원">
+            </div>
+        </div>
 
         <div class="apply-form__group">
             <label class="apply-form__label">신청 목록</label>
@@ -145,7 +153,7 @@
 
         <div class="apply-form__row">
             <div class="apply-form__group">
-            <label class="apply-form__label" for="gifFile">첨부파일</label>
+            <label class="apply-form__label" for="gifFile">첨부파일 (보고서 업로드 X, PP템플릿 신청 시 제품 누끼컷 첨부)</label>
             <input type="file" id="gifFile" name="gifFile" class="apply-form__input">
             </div>
         </div>
@@ -246,7 +254,7 @@
         <div class="apply-form__row" data-fieldset="gif,detail-page,blog">
           <div class="apply-form__group">
             <label class="apply-form__label" for="etc1">기타사항</label>
-            <textarea id="etc1" name="etcNote" class="apply-form__textarea"></textarea>
+            <textarea id="etc1" name="etcNote" class="apply-form__textarea" placeholder="폰트 등 기타 전달하실 내용이 있다면&#10;자유롭게 작성해 주세요."></textarea>
           </div>
         </div>
 
