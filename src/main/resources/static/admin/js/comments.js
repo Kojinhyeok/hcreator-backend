@@ -11,7 +11,7 @@ function escapeHtml(value) {
 		.replace(/'/g, '&#39;');
 }
 
-function initComments(box, type, targetId) {
+function initComments(box, type, targetId, onChange) {
 	box.innerHTML = `
 		<div class="cmt-list" data-role="list"><p class="text-muted small mb-0">불러오는 중...</p></div>
 		<div class="cmt-form">
@@ -65,6 +65,7 @@ function initComments(box, type, targetId) {
 		const items = await res.json();
 		listEl._items = items;
 		render(items);
+		if (typeof onChange === 'function') onChange();
 	}
 
 	submitEl.addEventListener('click', async () => {

@@ -16,7 +16,11 @@
 		.cmt-time { color: #8b90a7; }
 		.cmt-actions { margin-left: auto; display: flex; gap: 8px; }
 		.cmt-actions a { text-decoration: none; }
-		.cmt-body { white-space: pre-wrap; word-break: break-word; font-size: 13px; margin-top: 2px; }
+		.cmt-body { white-space: pre-wrap; word-break: break-word; font-size: 14px; margin-top: 2px; }
+		.color-chip { display: inline-block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid #ccd0dc; vertical-align: -3px; margin-right: 6px; }
+		.memo-preview { display: flex; align-items: center; gap: 6px; max-width: 320px; font-size: 13px; }
+		.memo-preview__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+		.memo-preview__author { font-weight: 700; color: #3b3f5c; }
 		.cmt-form { flex: 0 0 auto; margin-top: 8px; }
 		.apply-modal-body { padding: 12px 16px; }
 		.apply-dl { font-size: 13px; margin-bottom: 8px; display: grid; grid-template-columns: 90px 1fr 90px 1fr; gap: 3px 10px; }
@@ -64,6 +68,7 @@
 									<th>회사명</th>
 									<th>담당자</th>
 									<th>연락처</th>
+									<th style="width:340px;">최근 메모</th>
 									<th style="width:110px;">상태</th>
 									<th style="width:150px;">관리</th>
 								</tr>
@@ -120,6 +125,7 @@
 <script src="../js/comments.js"></script>
 <script>
 	let gifList = [];
+	let gifMemoSummary = {};
 	let serviceList = [];
 
 	const serviceTypeLabel = { 'detail-page': '상세페이지', 'blog': '블로그', 'video': '영상' };
@@ -146,30 +152,64 @@
 
 	// ===== GIF 신청 =====
 
+	function colorChip(value) {
+		const v = (value || '').trim();
+		if (!v) return '-';
+		const isHex = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v);
+		const hex = isHex ? (v.startsWith('#') ? v : '#' + v) : null;
+		return (hex ? `<span class="color-chip" style="background:${hex};"></span>` : '') + escapeHtml(v);
+	}
+
+	function memoPreview(id) {
+		const s = gifMemoSummary[id];
+		if (!s) return '<span class="text-muted">-</span>';
+		const text = (s.lastContent || '').replace(/\s+/g, ' ');
+		return `<div class="memo-preview" title="${escapeHtml(s.lastContent)}">
+			<span class="badge bg-primary">${s.count}</span>
+			<span class="memo-preview__text"><span class="memo-preview__author">${escapeHtml(s.lastAuthor)}</span> ${escapeHtml(text)}</span>
+		</div>`;
+	}
+
+	function refreshMemoSummary() {
+		return fetch("/api/admin/comments/summary?type=gif")
+			.then(res => res.ok ? res.json() : {})
+			.then(data => { gifMemoSummary = data; })
+			.catch(() => { gifMemoSummary = {}; });
+	}
+
+	function refreshGifListMemos() {
+		refreshMemoSummary().then(renderGifTable);
+	}
+
 	function loadGif() {
-		fetch("/api/admin/apply/gif")
-			.then(res => res.json())
-			.then(list => {
+		Promise.all([fetch("/api/admin/apply/gif").then(res => res.json()), refreshMemoSummary()])
+			.then(([list]) => {
 				gifList = list;
-				const total = list.length;
-				const tbody = document.querySelector("#gifTable tbody");
-				tbody.innerHTML = list.length === 0
-					? '<tr><td colspan="7" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
-					: list.map((item, index) => `
-						<tr>
-							<td class="align-middle">${total - index}</td>
-							<td class="align-middle">${formatDate(item.createdAt)}</td>
-							<td class="align-middle">${escapeHtml(item.companyName)}</td>
-							<td class="align-middle">${escapeHtml(item.contactName)}</td>
-							<td class="align-middle">${escapeHtml(item.contactPhone)}</td>
-							<td class="align-middle">${statusBadge(item.status)}</td>
-							<td class="align-middle">
-								<button class="btn btn-sm btn-outline-primary" onclick="viewGif(${index})">보기</button>
-								<button class="btn btn-sm btn-outline-danger" onclick="deleteGif(${item.id})">삭제</button>
-							</td>
-						</tr>
-					`).join("");
+				renderGifTable();
 			});
+	}
+
+	function renderGifTable() {
+		const list = gifList;
+		const total = list.length;
+		const tbody = document.querySelector("#gifTable tbody");
+		tbody.innerHTML = list.length === 0
+			? '<tr><td colspan="8" class="text-center py-4">접수된 신청이 없습니다.</td></tr>'
+			: list.map((item, index) => `
+				<tr>
+					<td class="align-middle">${total - index}</td>
+					<td class="align-middle">${formatDate(item.createdAt)}</td>
+					<td class="align-middle">${escapeHtml(item.companyName)}</td>
+					<td class="align-middle">${escapeHtml(item.contactName)}</td>
+					<td class="align-middle">${escapeHtml(item.contactPhone)}</td>
+					<td class="align-middle">${memoPreview(item.id)}</td>
+					<td class="align-middle">${statusBadge(item.status)}</td>
+					<td class="align-middle">
+						<button class="btn btn-sm btn-outline-primary" onclick="viewGif(${index})">보기</button>
+						<button class="btn btn-sm btn-outline-danger" onclick="deleteGif(${item.id})">삭제</button>
+					</td>
+				</tr>
+			`).join("");
 	}
 
 	function statusBadge(status) {
@@ -211,8 +251,8 @@
 						<dt>연락처</dt><dd>${escapeHtml(item.contactPhone) || '-'}</dd>
 						<dt>이메일</dt><dd>${escapeHtml(item.contactEmail) || '-'}</dd>
 						<dt>임상시험 금액</dt><dd>${escapeHtml(item.clinicalAmount) || '-'}</dd>
-						<dt>포인트컬러</dt><dd>${escapeHtml(item.pointColor) || '-'}</dd>
-						<dt>배경색</dt><dd>${escapeHtml(item.bgColor) || '-'}</dd>
+						<dt>포인트컬러</dt><dd>${colorChip(item.pointColor)}</dd>
+						<dt>배경색</dt><dd>${colorChip(item.bgColor)}</dd>
 						<dt>배경 효과</dt><dd>${escapeHtml(item.bgEffect) || '-'}</dd>
 						<dt>용량</dt><dd>${escapeHtml(item.quantity) || '-'}</dd>
 						<dt>첨부파일</dt><dd class="full">${fileUrl ? `<a href="${fileUrl}" target="_blank" rel="noopener">파일 보기</a>` : '-'}</dd>
@@ -246,13 +286,13 @@
 				</div>
 
 				<div class="col-lg-5 apply-col apply-col--comments">
-					<h6 class="mb-1 small">메모 (직원 댓글)</h6>
+					<h6 class="mb-1">메모 <span class="text-muted small">(직원 댓글)</span></h6>
 					${legacyMemo}
 					<div id="gifComments" class="d-flex flex-column flex-grow-1" style="min-height:0;"></div>
 				</div>
 			</div>
 		`;
-		initComments(document.getElementById("gifComments"), 'gif', item.id);
+		initComments(document.getElementById("gifComments"), 'gif', item.id, refreshGifListMemos);
 		bootstrap.Modal.getOrCreateInstance(document.getElementById('detailModal')).show();
 	}
 

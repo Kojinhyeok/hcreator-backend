@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -38,6 +40,21 @@ public class ApplyCommentController {
         return commentRepository.findByTargetTypeAndTargetIdOrderByCreatedAtAscIdAsc(type, id).stream()
                 .map(c -> toView(c, me))
                 .toList();
+    }
+
+    public record Summary(int count, String lastAuthor, String lastContent, LocalDateTime lastAt) {}
+
+    /** 목록 화면용: 대상(신청/문의)별 메모 개수와 가장 최근 메모 */
+    @GetMapping("/summary")
+    public Map<Long, Summary> summary(@RequestParam String type) {
+        checkType(type);
+        Map<Long, Summary> result = new HashMap<>();
+        Map<Long, Integer> counts = new HashMap<>();
+        for (ApplyComment c : commentRepository.findByTargetTypeOrderByCreatedAtAscIdAsc(type)) {
+            int count = counts.merge(c.getTargetId(), 1, Integer::sum);
+            result.put(c.getTargetId(), new Summary(count, c.getAuthorName(), c.getContent(), c.getCreatedAt()));
+        }
+        return result;
     }
 
     @PostMapping

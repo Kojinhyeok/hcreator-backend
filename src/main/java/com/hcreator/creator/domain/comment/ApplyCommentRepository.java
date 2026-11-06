@@ -8,5 +8,7 @@ public interface ApplyCommentRepository extends JpaRepository<ApplyComment, Long
 
     List<ApplyComment> findByTargetTypeAndTargetIdOrderByCreatedAtAscIdAsc(String targetType, Long targetId);
 
+    List<ApplyComment> findByTargetTypeOrderByCreatedAtAscIdAsc(String targetType);
+
     void deleteByTargetTypeAndTargetId(String targetType, Long targetId);
 }
