@@ -22,6 +22,9 @@ public class ApplyComment {
     @Column(nullable = false)
     private Long targetId;
 
+    @Column(length = 10)
+    private String contentFormat; // null 또는 "text" = 일반 글, "html" = 서식 있는 글
+
     private Long authorId;
 
     @Column(length = 50)

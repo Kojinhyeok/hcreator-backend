@@ -22,14 +22,15 @@ public class ApplyCommentController {
 
     private static final Set<String> TYPES = Set.of("gif", "inquiry");
     private static final int MAX_LENGTH = 5000;
+    private static final int MAX_HTML_LENGTH = 20000;
 
     private final ApplyCommentRepository commentRepository;
     private final MemberRepository memberRepository;
 
-    public record CommentView(Long id, String authorName, String content,
+    public record CommentView(Long id, String authorName, String content, String format,
                               LocalDateTime createdAt, LocalDateTime updatedAt, boolean mine) {}
 
-    public record CreateRequest(String type, Long id, String content) {}
+    public record CreateRequest(String type, Long id, String content, String format) {}
 
     public record UpdateRequest(String content) {}
 
@@ -61,7 +62,8 @@ public class ApplyCommentController {
     public CommentView create(@RequestBody CreateRequest req, HttpServletRequest request) {
         checkType(req.type());
         if (req.id() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "대상이 없습니다.");
-        String content = cleanContent(req.content());
+        boolean html = "html".equals(req.format());
+        String content = html ? cleanHtml(req.content()) : cleanContent(req.content());
 
         Long me = currentMemberId(request);
         Member member = memberRepository.findById(me)
@@ -72,6 +74,7 @@ public class ApplyCommentController {
                 .targetType(req.type()).targetId(req.id())
                 .authorId(me).authorName(name)
                 .content(content)
+                .contentFormat(html ? "html" : "text")
                 .build());
         return toView(saved, me);
     }
@@ -80,7 +83,8 @@ public class ApplyCommentController {
     public CommentView update(@PathVariable Long commentId, @RequestBody UpdateRequest req, HttpServletRequest request) {
         Long me = currentMemberId(request);
         ApplyComment comment = findOwn(commentId, me);
-        comment.setContent(cleanContent(req.content()));
+        boolean html = "html".equals(comment.getContentFormat());
+        comment.setContent(html ? cleanHtml(req.content()) : cleanContent(req.content()));
         comment.setUpdatedAt(LocalDateTime.now());
         return toView(commentRepository.save(comment), me);
     }
@@ -126,8 +130,23 @@ public class ApplyCommentController {
         return trimmed;
     }
 
+    private String cleanHtml(String content) {
+        if (content == null || content.length() > MAX_HTML_LENGTH * 2) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "내용이 너무 깁니다.");
+        }
+        String cleaned = HtmlSanitizer.clean(content);
+        if (HtmlSanitizer.plainText(cleaned).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "내용을 입력해 주세요.");
+        }
+        if (cleaned.length() > MAX_HTML_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "내용이 너무 깁니다.");
+        }
+        return cleaned;
+    }
+
     private CommentView toView(ApplyComment c, Long me) {
-        return new CommentView(c.getId(), c.getAuthorName(), c.getContent(), c.getCreatedAt(), c.getUpdatedAt(),
+        return new CommentView(c.getId(), c.getAuthorName(), c.getContent(),
+                "html".equals(c.getContentFormat()) ? "html" : "text", c.getCreatedAt(), c.getUpdatedAt(),
                 c.getAuthorId() != null && c.getAuthorId().equals(me));
     }
 }
