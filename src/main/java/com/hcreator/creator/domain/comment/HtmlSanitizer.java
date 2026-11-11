@@ -50,8 +50,9 @@ public final class HtmlSanitizer {
             if (TAGS.contains(name)) {
                 if (closing) {
                     if (!name.equals("br")) out.append("</").append(name).append('>');
-                } else if (name.equals("span")) {
-                    out.append(openSpan(m.group(3)));
+                } else if (!name.equals("p") && !name.equals("br")) {
+                    // 굵게/기울임/밑줄/span 등: 에디터가 크기(class)와 색(style)을 같은 태그에 붙이기도 한다
+                    out.append(openFormatTag(name, m.group(3)));
                 } else {
                     out.append('<').append(name).append('>');
                 }
@@ -66,7 +67,7 @@ public final class HtmlSanitizer {
         return cleanedHtml.replaceAll("<[^>]*>", "").replace("&nbsp;", " ").trim();
     }
 
-    private static String openSpan(String attrs) {
+    private static String openFormatTag(String name, String attrs) {
         StringBuilder cls = new StringBuilder();
         String style = "";
         Matcher a = ATTR.matcher(attrs);
@@ -84,7 +85,7 @@ public final class HtmlSanitizer {
                 style = safeStyle(value);
             }
         }
-        StringBuilder sb = new StringBuilder("<span");
+        StringBuilder sb = new StringBuilder("<").append(name);
         if (cls.length() > 0) sb.append(" class=\"").append(cls).append('"');
         if (!style.isEmpty()) sb.append(" style=\"").append(style).append('"');
         return sb.append('>').toString();
