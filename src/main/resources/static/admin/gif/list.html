@@ -13,6 +13,33 @@
 		  display: inline-block;
 		  max-width: 100%;
 		}
+		#quillEditor .ql-editor img,
+		#quillEditor .ql-editor video { cursor: pointer; }
+		#quillEditor .ql-editor .media-selected {
+		  outline: 3px solid #534AB7;
+		  outline-offset: -3px;
+		}
+		#mediaToolbar {
+		  display: none;
+		  position: fixed;
+		  z-index: 3000;
+		  gap: 4px;
+		  padding: 4px;
+		  border-radius: 6px;
+		  background: #2b2d42;
+		  box-shadow: 0 2px 8px rgba(0,0,0,.35);
+		}
+		#mediaToolbar button {
+		  padding: 3px 9px;
+		  border: 0;
+		  border-radius: 4px;
+		  background: #4a4e69;
+		  color: #fff;
+		  font-size: 12px;
+		  font-weight: 600;
+		}
+		#mediaToolbar button.active { background: #534AB7; }
+		#mediaToolbar button.danger { background: #dc3545; }
 		#quillEditor .ql-editor video.ql-gif-video {
 		  display: block;
 		  width: 100%;
@@ -156,9 +183,114 @@
 			}
 		});
 
+		initEditorMediaDelete();
 		loadItems();
 		document.getElementById("btnSave").addEventListener("click", saveItem);
 	});
+
+	// 에디터 안 GIF/이미지: 클릭해서 선택 → 크기(25/50/75/100%) 조절 또는 삭제
+	let selectedMedia = null;
+	let mediaToolbar = null;
+	const MEDIA_SIZES = ['25%', '50%', '75%', '100%'];
+
+	function clearMediaSelection() {
+		if (selectedMedia) selectedMedia.classList.remove('media-selected');
+		selectedMedia = null;
+		if (mediaToolbar) mediaToolbar.style.display = 'none';
+	}
+
+	function currentMediaSize(node) {
+		return node.style.width || '100%';
+	}
+
+	function highlightSizeButtons() {
+		if (!selectedMedia) return;
+		const cur = currentMediaSize(selectedMedia);
+		mediaToolbar.querySelectorAll('button[data-size]').forEach((b) => {
+			b.classList.toggle('active', b.dataset.size === cur);
+		});
+	}
+
+	function positionToolbar() {
+		if (!selectedMedia) return;
+		const r = selectedMedia.getBoundingClientRect();
+		mediaToolbar.style.display = 'flex';
+		mediaToolbar.style.top = Math.max(r.top + 8, 8) + 'px';
+		mediaToolbar.style.left = Math.max(Math.min(r.left + 8, window.innerWidth - 280), 8) + 'px';
+	}
+
+	function selectMedia(node) {
+		clearMediaSelection();
+		selectedMedia = node;
+		node.classList.add('media-selected');
+		highlightSizeButtons();
+		positionToolbar();
+	}
+
+	function resizeSelectedMedia(size) {
+		const node = selectedMedia;
+		if (!node) return;
+		if (size === '100%') {
+			node.style.removeProperty('width');
+			node.style.removeProperty('margin-left');
+			node.style.removeProperty('margin-right');
+			if (!node.getAttribute('style')) node.removeAttribute('style');
+		} else {
+			node.style.width = size;
+			node.style.marginLeft = 'auto';   // 공개 페이지에서 가운데 정렬
+			node.style.marginRight = 'auto';
+		}
+		quill.update('user');
+		highlightSizeButtons();
+		positionToolbar();
+	}
+
+	function deleteSelectedMedia() {
+		const node = selectedMedia;
+		if (!node) return;
+		clearMediaSelection();
+		const blot = Quill.find(node);
+		if (blot && typeof blot.length === 'function' && blot.scroll) {
+			quill.deleteText(quill.getIndex(blot), blot.length(), 'user');
+		} else {
+			// 에디터가 인식하지 못하는 옛 데이터: 화면에서 직접 제거하고 에디터에 반영
+			node.remove();
+			quill.update('user');
+		}
+	}
+
+	function initEditorMediaDelete() {
+		mediaToolbar = document.createElement('div');
+		mediaToolbar.id = 'mediaToolbar';
+		mediaToolbar.innerHTML = MEDIA_SIZES.map((s) => `<button type="button" data-size="${s}">${s}</button>`).join('')
+			+ '<button type="button" class="danger" data-act="delete">× 삭제</button>';
+		mediaToolbar.addEventListener('mousedown', (e) => e.preventDefault());
+		mediaToolbar.addEventListener('click', (e) => {
+			const btn = e.target.closest('button');
+			if (!btn) return;
+			if (btn.dataset.size) resizeSelectedMedia(btn.dataset.size);
+			else if (btn.dataset.act === 'delete') deleteSelectedMedia();
+		});
+		document.body.appendChild(mediaToolbar);
+
+		quill.root.addEventListener('click', (e) => {
+			const t = e.target;
+			if (t && (t.tagName === 'IMG' || t.tagName === 'VIDEO')) {
+				e.preventDefault();
+				selectMedia(t);
+			} else {
+				clearMediaSelection();
+			}
+		});
+		quill.root.addEventListener('keydown', (e) => {
+			if (selectedMedia && (e.key === 'Delete' || e.key === 'Backspace')) {
+				e.preventDefault();
+				deleteSelectedMedia();
+			}
+		});
+		quill.root.addEventListener('scroll', clearMediaSelection);
+		document.getElementById('gifModal').addEventListener('hidden.bs.modal', clearMediaSelection);
+	}
 
 	// 에디터 이미지 버튼: 여러 파일 선택 가능, 파일명 숫자 순서대로 삽입, GIF는 서버에서 MP4로 변환
 	async function quillImageHandler() {
@@ -250,7 +382,8 @@
 		const fileInput = document.getElementById("gifFile");
 		const file = fileInput.files[0];
 		const title = document.getElementById("title").value;
-		const detailContent = quill.root.innerHTML;
+		clearMediaSelection();
+		const detailContent = quill.root.innerHTML.replace(/\s*media-selected/g, '').replace(/ class=""/g, '');
 
 		if (!title) { alert("템플릿 이름을 입력해주세요."); return; }
 		if (!id && !file) { alert("이미지를 선택해주세요."); return; }
@@ -335,7 +468,11 @@
 	function deleteItem(id) {
 		if (confirm("이 템플릿을 삭제하시겠습니까?")) {
 			fetch(`/api/admin/gif/${id}`, { method: "DELETE" })
-				.then(res => { if (res.ok) { alert("삭제되었습니다."); loadItems(); } });
+				.then(res => {
+					if (res.ok) { alert("삭제되었습니다."); loadItems(); }
+					else { alert("삭제에 실패했습니다. (오류 " + res.status + ") 잠시 후 다시 시도해 주세요."); }
+				})
+				.catch(() => alert("삭제 요청 중 오류가 발생했습니다."));
 		}
 	}
 
