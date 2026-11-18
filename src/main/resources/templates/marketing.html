@@ -11,11 +11,11 @@
 
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <section class="about-hero">
+  <section class="about-hero" th:with="b=${banners['marketing']}">
     <div class="about-hero__inner">
-      <p class="about-hero__label">MARKETING SERVICE</p>
-      <h1 class="about-hero__title">임상 결과를, 팔리는 콘텐츠로</h1>
-      <p class="about-hero__lead">GIF부터 상세페이지, 영상까지 필요한 콘텐츠를 한번에.</p>
+      <p class="about-hero__label" th:if="${b.hasLabel}" th:text="${b.label}">LABEL</p>
+      <h1 class="about-hero__title" th:utext="${b.titleHtml}">제목</h1>
+      <p class="about-hero__lead" th:if="${b.hasDescription}" th:utext="${b.descriptionHtml}">설명</p>
     </div>
   </section>
 

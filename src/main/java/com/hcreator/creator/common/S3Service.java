@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -146,6 +147,112 @@ public class S3Service {
         }
     }
 
+    private static final Set<String> VIDEO_EXTENSIONS = Set.of(".mp4", ".mov", ".m4v", ".webm", ".avi", ".mkv");
+    private static final long VIDEO_TIMEOUT_SEC = 300; // 영상 압축 1회 제한 시간
+
+    /**
+     * 영상(mp4/mov 등)을 웹용 MP4로 압축해 업로드하고 MP4 주소를 돌려준다.
+     * - 가로가 1280px보다 크면 1280px로 줄이고, H.264(crf 26)로 압축, faststart 적용
+     * - keepAudio=false 이면 소리를 제거한다 (배경 영상용)
+     * - 첫 장면 포스터: abc.mp4 -> abc_poster.jpg (실패해도 영상 업로드는 진행)
+     * - 압축 실패 시: mp4면 원본 그대로 업로드, 그 외 형식이면 오류
+     * - GIF는 기존 GIF→MP4 변환을 사용, 영상이 아니면 원본 그대로 업로드
+     */
+    public PresignedUploadResult uploadVideoCompressed(MultipartFile file, String folder, boolean keepAudio) throws IOException {
+        String extension = extractExtension(file.getOriginalFilename());
+        if (".gif".equalsIgnoreCase(extension)) {
+            return uploadGifAsMp4(file, folder);
+        }
+        String ext = extension == null ? "" : extension.toLowerCase();
+        if (!VIDEO_EXTENSIONS.contains(ext)) {
+            return uploadRaw(file, folder);
+        }
+
+        String baseKey = folder + "/" + UUID.randomUUID();
+        Path in = Files.createTempFile("video-in-", ext);
+        Path mp4 = Files.createTempFile("video-out-", ".mp4");
+        Path poster = Files.createTempFile("video-poster-", ".jpg");
+        Path logFile = Files.createTempFile("ffmpeg-", ".log");
+
+        try {
+            file.transferTo(in);
+
+            boolean converted = false;
+            boolean hasPoster = false;
+            try {
+                if (convertLock.tryAcquire(VIDEO_TIMEOUT_SEC, TimeUnit.SECONDS)) {
+                    try {
+                        converted = compressVideo(in, mp4, logFile, keepAudio);
+                        if (converted) {
+                            hasPoster = runFfmpeg(logFile, List.of(
+                                    FFMPEG_PATH, "-nostdin", "-y", "-loglevel", "error",
+                                    "-i", mp4.toString(),
+                                    "-frames:v", "1", "-update", "1", "-q:v", "3",
+                                    poster.toString())) && Files.size(poster) > 0;
+                        }
+                    } finally {
+                        convertLock.release();
+                    }
+                } else {
+                    log.warn("영상 압축 대기 시간 초과");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            boolean isMp4 = ".mp4".equals(ext);
+            if (converted && (!isMp4 || Files.size(mp4) <= Files.size(in))) {
+                String mp4Key = baseKey + ".mp4";
+                putFile(mp4Key, mp4, "video/mp4");
+                if (hasPoster) putFile(baseKey + "_poster.jpg", poster, "image/jpeg");
+                log.info("영상 압축 완료: {} → {} bytes", Files.size(in), Files.size(mp4));
+                return new PresignedUploadResult(null, mp4Key, publicUrl(mp4Key));
+            }
+            if (isMp4) {
+                // 압축 실패 또는 이미 충분히 작은 경우: 원본 그대로 사용
+                String mp4Key = baseKey + ".mp4";
+                putFile(mp4Key, in, "video/mp4");
+                return new PresignedUploadResult(null, mp4Key, publicUrl(mp4Key));
+            }
+            throw new IOException("영상 변환에 실패했습니다. MP4 파일로 다시 시도해 주세요.");
+        } finally {
+            Files.deleteIfExists(in);
+            Files.deleteIfExists(mp4);
+            Files.deleteIfExists(poster);
+            Files.deleteIfExists(logFile);
+        }
+    }
+
+    private boolean compressVideo(Path in, Path mp4, Path logFile, boolean keepAudio) {
+        try {
+            long start = System.currentTimeMillis();
+            java.util.ArrayList<String> cmd = new java.util.ArrayList<>(List.of(
+                    NICE_PATH, "-n", "10",
+                    FFMPEG_PATH, "-nostdin", "-y", "-loglevel", "error",
+                    "-i", in.toString(),
+                    "-vf", "scale='min(1280,iw)':-2",
+                    "-c:v", "libx264", "-crf", "26", "-preset", "veryfast", "-threads", "2",
+                    "-pix_fmt", "yuv420p", "-movflags", "+faststart"));
+            if (keepAudio) {
+                cmd.addAll(List.of("-c:a", "aac", "-b:a", "128k"));
+            } else {
+                cmd.add("-an");
+            }
+            cmd.add(mp4.toString());
+
+            boolean ok = runFfmpeg(logFile, cmd, VIDEO_TIMEOUT_SEC);
+            if (!ok || Files.size(mp4) == 0) return false;
+            log.info("영상 변환 {}ms", System.currentTimeMillis() - start);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (Exception e) {
+            log.warn("영상 압축 중 예외: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private boolean convertToMp4(Path in, Path mp4, Path poster, Path logFile) {
         try {
             long start = System.currentTimeMillis();
@@ -180,14 +287,18 @@ public class S3Service {
     }
 
     private boolean runFfmpeg(Path logFile, List<String> command) throws IOException, InterruptedException {
+        return runFfmpeg(logFile, command, CONVERT_TIMEOUT_SEC);
+    }
+
+    private boolean runFfmpeg(Path logFile, List<String> command, long timeoutSec) throws IOException, InterruptedException {
         Process process = new ProcessBuilder(command)
                 .redirectErrorStream(true)
                 .redirectOutput(logFile.toFile())
                 .start();
 
-        if (!process.waitFor(CONVERT_TIMEOUT_SEC, TimeUnit.SECONDS)) {
+        if (!process.waitFor(timeoutSec, TimeUnit.SECONDS)) {
             process.destroyForcibly();
-            log.warn("ffmpeg 시간 초과({}초) - 중단했습니다.", CONVERT_TIMEOUT_SEC);
+            log.warn("ffmpeg 시간 초과({}초) - 중단했습니다.", timeoutSec);
             return false;
         }
         if (process.exitValue() != 0) {

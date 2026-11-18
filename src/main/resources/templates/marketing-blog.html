@@ -11,12 +11,12 @@
 
   <div th:replace="~{fragments/header :: header}"></div>
 
-  <section class="service-hero service-hero--video">
-    <video class="service-hero__video" autoplay muted loop playsinline th:src="@{/videos/blog-hero.mp4}"></video>
+  <section class="service-hero" th:with="b=${banners['blog']}" th:classappend="${b.hasVideo} ? 'service-hero--video'">
+    <video th:if="${b.hasVideo}" class="service-hero__video" autoplay muted loop playsinline preload="auto" th:src="${b.videoUrl}"></video>
     <div class="service-hero__inner">
-      <p class="service-hero__label">B L O G   M A R K E T I N G</p>
-      <h1 class="service-hero__title">블로그 마케팅</h1>
-      <p class="service-hero__desc">아무것도 없는 블로그에서, 검색되는 브랜드로.<br>제품 분석부터 키워드 선정, 콘텐츠 발행까지 블로그 마케팅의 시작을 함께합니다.</p>
+      <p class="service-hero__label" th:if="${b.hasLabel}" th:text="${b.label}">LABEL</p>
+      <h1 class="service-hero__title" th:utext="${b.titleHtml}">제목</h1>
+      <p class="service-hero__desc" th:if="${b.hasDescription}" th:utext="${b.descriptionHtml}">설명</p>
     </div>
   </section>
 

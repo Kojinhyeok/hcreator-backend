@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>페이지 배너 관리 - H CREATOR</title>
+	<link href="../css/app.css" rel="stylesheet">
+	<link href="../css/custom.css" rel="stylesheet">
+	<style>
+		.banner-thumb { width: 90px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6; background: #f4f5f9; }
+		.banner-media-preview video, .banner-media-preview img { max-width: 100%; max-height: 180px; border-radius: 6px; border: 1px solid #dee2e6; background: #000; }
+		.banner-media-preview img { background: #f4f5f9; }
+	</style>
+</head>
+
+<body data-page="banner-list" data-base="../">
+<div class="wrapper">
+	<div id="sidebar-container"></div>
+	<div class="main">
+		<div id="header-container"></div>
+
+		<main class="content">
+			<div class="container-fluid p-0">
+				<div class="mb-3">
+					<h1 class="h3 mb-1"><strong>페이지 배너 관리</strong></h1>
+					<p class="text-muted mb-0 small">각 페이지 맨 위 배너의 문구와 배경 영상을 바꿉니다. 저장하면 바로 사이트에 반영됩니다.</p>
+				</div>
+
+				<div class="card">
+					<div class="table-responsive">
+						<table class="table table-hover my-0" id="bannerTable">
+							<thead>
+							<tr>
+								<th style="width:190px;">페이지</th>
+								<th>제목</th>
+								<th style="width:120px;">영상 / 이미지</th>
+								<th style="width:100px;">상태</th>
+								<th style="width:90px;">관리</th>
+							</tr>
+							</thead>
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
+
+<div class="modal fade" id="bannerModal" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="modalTitle">배너 수정</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+				<input type="hidden" id="bannerKey">
+
+				<div class="mb-3" data-field="label">
+					<label class="form-label">작은 글씨 (제목 위)</label>
+					<input type="text" class="form-control" id="fLabel" maxlength="200">
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label">제목 <span class="text-muted small">(Enter로 줄바꿈)</span></label>
+					<textarea class="form-control" id="fTitle" rows="2" maxlength="500"></textarea>
+				</div>
+
+				<div class="mb-3" data-field="description">
+					<label class="form-label">설명 <span class="text-muted small">(Enter로 줄바꿈)</span></label>
+					<textarea class="form-control" id="fDescription" rows="3" maxlength="1000"></textarea>
+				</div>
+
+				<div class="row g-2 mb-3" data-field="button">
+					<div class="col-md-5">
+						<label class="form-label">버튼 글자</label>
+						<input type="text" class="form-control" id="fButtonText" maxlength="100" placeholder="비우면 버튼이 사라집니다">
+					</div>
+					<div class="col-md-7">
+						<label class="form-label">버튼 링크</label>
+						<input type="text" class="form-control" id="fButtonLink" maxlength="500" placeholder="/portfolio 또는 https://...">
+					</div>
+				</div>
+
+				<div class="row g-2 mb-3" data-field="button2">
+					<div class="col-md-5">
+						<label class="form-label">두 번째 버튼 글자</label>
+						<input type="text" class="form-control" id="fButton2Text" maxlength="100" placeholder="비우면 버튼이 사라집니다">
+					</div>
+					<div class="col-md-7">
+						<label class="form-label">두 번째 버튼 링크</label>
+						<input type="text" class="form-control" id="fButton2Link" maxlength="500" placeholder="/support 또는 https://...">
+					</div>
+				</div>
+
+				<div class="mb-3" data-field="video">
+					<label class="form-label">배경 영상</label>
+					<input type="file" class="form-control" id="fVideoFile" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.webm">
+					<div class="form-text">MP4 권장, 최대 150MB. 올리면 서버가 웹용으로 자동 압축합니다 (가로 1280px 이하, 소리 제거). 길이에 따라 1~3분 걸릴 수 있습니다.</div>
+					<div class="banner-media-preview mt-2" id="videoPreview"></div>
+					<button type="button" class="btn btn-outline-danger btn-sm mt-2 d-none" id="btnRemoveVideo">영상 없애기</button>
+				</div>
+
+				<div class="mb-3" data-field="image">
+					<label class="form-label">이미지</label>
+					<input type="file" class="form-control" id="fImageFile" accept="image/*">
+					<div class="banner-media-preview mt-2" id="imagePreview"></div>
+					<button type="button" class="btn btn-outline-danger btn-sm mt-2 d-none" id="btnRemoveImage">이미지 없애기</button>
+				</div>
+
+				<p class="small mb-0" id="saveStatus"></p>
+			</div>
+			<div class="modal-footer justify-content-between">
+				<button type="button" class="btn btn-outline-secondary" id="btnReset">기본값으로 되돌리기</button>
+				<div>
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+					<button type="button" class="btn btn-primary" id="btnSave">저장하기</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="../js/app.js"></script>
+<script src="../js/common.js"></script>
+<script>
+	let bannerList = [];
+	let current = null;      // 수정 중인 항목
+	let videoPath = '';      // 저장될 영상 주소 ('' = 없음)
+	let imagePath = '';
+	let pendingVideo = null; // 새로 고른 파일
+	let pendingImage = null;
+
+	function esc(v) {
+		return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+	}
+
+	function posterOf(path) {
+		return path && /\.mp4$/i.test(path) ? path.replace(/\.mp4$/i, '_poster.jpg') : '';
+	}
+
+	document.addEventListener('DOMContentLoaded', () => {
+		loadBanners();
+		document.getElementById('btnSave').addEventListener('click', saveBanner);
+		document.getElementById('btnReset').addEventListener('click', resetBanner);
+		document.getElementById('fVideoFile').addEventListener('change', (e) => {
+			pendingVideo = e.target.files[0] || null;
+			renderVideoPreview();
+		});
+		document.getElementById('fImageFile').addEventListener('change', (e) => {
+			pendingImage = e.target.files[0] || null;
+			renderImagePreview();
+		});
+		document.getElementById('btnRemoveVideo').addEventListener('click', () => {
+			videoPath = ''; pendingVideo = null;
+			document.getElementById('fVideoFile').value = '';
+			renderVideoPreview();
+		});
+		document.getElementById('btnRemoveImage').addEventListener('click', () => {
+			imagePath = ''; pendingImage = null;
+			document.getElementById('fImageFile').value = '';
+			renderImagePreview();
+		});
+	});
+
+	function loadBanners() {
+		fetch('/api/admin/banner')
+			.then(res => res.json())
+			.then(list => {
+				bannerList = list;
+				document.querySelector('#bannerTable tbody').innerHTML = list.map((b, i) => {
+					const media = b.showVideo
+						? (b.videoPath ? '<span class="badge bg-success">영상 있음</span>' : '<span class="badge bg-secondary">영상 없음</span>')
+						: (b.showImage ? (b.imagePath ? '<span class="badge bg-success">이미지 있음</span>' : '<span class="badge bg-secondary">이미지 없음</span>') : '<span class="text-muted">-</span>');
+					return `
+						<tr>
+							<td class="align-middle"><strong>${esc(b.name)}</strong></td>
+							<td class="align-middle">${esc(b.title).replace(/\n/g, ' ')}</td>
+							<td class="align-middle">${media}</td>
+							<td class="align-middle">${b.customized ? '<span class="badge bg-primary">수정됨</span>' : '<span class="text-muted small">기본</span>'}</td>
+							<td class="align-middle"><button class="btn btn-sm btn-outline-primary" onclick="openEdit(${i})">수정</button></td>
+						</tr>`;
+				}).join('');
+			});
+	}
+
+	function renderVideoPreview() {
+		const box = document.getElementById('videoPreview');
+		const removeBtn = document.getElementById('btnRemoveVideo');
+		if (pendingVideo) {
+			box.innerHTML = '<p class="text-muted small mb-0">선택한 파일: ' + esc(pendingVideo.name) + ' (' + (pendingVideo.size / 1048576).toFixed(1) + 'MB) — 저장하면 업로드됩니다.</p>';
+			removeBtn.classList.remove('d-none');
+		} else if (videoPath) {
+			const poster = posterOf(videoPath);
+			box.innerHTML = '<video src="' + esc(videoPath) + '" ' + (poster ? 'poster="' + esc(poster) + '" ' : '') + 'controls muted preload="metadata"></video>';
+			removeBtn.classList.remove('d-none');
+		} else {
+			box.innerHTML = '<p class="text-muted small mb-0">영상 없음 (배너 배경만 보입니다)</p>';
+			removeBtn.classList.add('d-none');
+		}
+	}
+
+	function renderImagePreview() {
+		const box = document.getElementById('imagePreview');
+		const removeBtn = document.getElementById('btnRemoveImage');
+		if (pendingImage) {
+			const url = URL.createObjectURL(pendingImage);
+			box.innerHTML = '<img src="' + url + '" alt="">';
+			removeBtn.classList.remove('d-none');
+		} else if (imagePath) {
+			box.innerHTML = '<img src="' + esc(imagePath) + '" alt="">';
+			removeBtn.classList.remove('d-none');
+		} else {
+			box.innerHTML = '<p class="text-muted small mb-0">이미지 없음</p>';
+			removeBtn.classList.add('d-none');
+		}
+	}
+
+	function openEdit(index) {
+		const b = bannerList[index];
+		current = b;
+		pendingVideo = null; pendingImage = null;
+		videoPath = b.videoPath || '';
+		imagePath = b.imagePath || '';
+		document.getElementById('fVideoFile').value = '';
+		document.getElementById('fImageFile').value = '';
+		document.getElementById('modalTitle').textContent = b.name + ' 수정';
+		document.getElementById('bannerKey').value = b.key;
+		document.getElementById('fLabel').value = b.label;
+		document.getElementById('fTitle').value = b.title;
+		document.getElementById('fDescription').value = b.description;
+		document.getElementById('fButtonText').value = b.buttonText;
+		document.getElementById('fButtonLink').value = b.buttonLink;
+		document.getElementById('fButton2Text').value = b.button2Text;
+		document.getElementById('fButton2Link').value = b.button2Link;
+		document.getElementById('saveStatus').textContent = '';
+
+		const show = { label: b.showLabel, description: b.showDescription, button: b.showButton, button2: b.showButton2, video: b.showVideo, image: b.showImage };
+		document.querySelectorAll('[data-field]').forEach(el => {
+			el.classList.toggle('d-none', !show[el.dataset.field]);
+		});
+		document.getElementById('btnReset').classList.toggle('d-none', !b.customized);
+		renderVideoPreview();
+		renderImagePreview();
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('bannerModal')).show();
+	}
+
+	function setBusy(busy, message) {
+		['btnSave', 'btnReset'].forEach(id => { document.getElementById(id).disabled = busy; });
+		const st = document.getElementById('saveStatus');
+		st.textContent = message || '';
+		st.className = 'small mb-0 ' + (busy ? 'text-primary' : 'text-danger');
+	}
+
+	async function uploadFile(url, file) {
+		const fd = new FormData();
+		fd.append('file', file);
+		const res = await fetch(url, { method: 'POST', body: fd });
+		if (!res.ok) {
+			let msg = '업로드에 실패했습니다.';
+			try { const d = await res.json(); if (d.message) msg = d.message; } catch (e) {}
+			throw new Error(msg);
+		}
+		const data = await res.json();
+		return data.publicUrl;
+	}
+
+	async function saveBanner() {
+		const key = document.getElementById('bannerKey').value;
+		try {
+			let video = videoPath;
+			let image = imagePath;
+			if (pendingVideo) {
+				setBusy(true, '영상 업로드 및 압축 중입니다... (1~3분 걸릴 수 있으니 창을 닫지 마세요)');
+				video = await uploadFile('/api/admin/banner/upload-video', pendingVideo);
+			}
+			if (pendingImage) {
+				setBusy(true, '이미지 업로드 중...');
+				image = await uploadFile('/api/admin/banner/upload-image', pendingImage);
+			}
+			setBusy(true, '저장 중...');
+			const res = await fetch('/api/admin/banner/' + encodeURIComponent(key), {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					label: document.getElementById('fLabel').value,
+					title: document.getElementById('fTitle').value,
+					description: document.getElementById('fDescription').value,
+					buttonText: document.getElementById('fButtonText').value,
+					buttonLink: document.getElementById('fButtonLink').value,
+					button2Text: document.getElementById('fButton2Text').value,
+					button2Link: document.getElementById('fButton2Link').value,
+					videoPath: video,
+					imagePath: image
+				})
+			});
+			if (!res.ok) {
+				let msg = '저장에 실패했습니다.';
+				try { const d = await res.json(); if (d.message) msg = d.message; } catch (e) {}
+				throw new Error(msg);
+			}
+			setBusy(false, '');
+			bootstrap.Modal.getOrCreateInstance(document.getElementById('bannerModal')).hide();
+			alert('저장되었습니다. 사이트에 바로 반영됩니다.');
+			loadBanners();
+		} catch (e) {
+			setBusy(false, e.message || '저장에 실패했습니다.');
+		}
+	}
+
+	async function resetBanner() {
+		if (!current) return;
+		if (!confirm('이 페이지의 배너를 처음 상태(기본값)로 되돌릴까요?')) return;
+		const res = await fetch('/api/admin/banner/' + encodeURIComponent(current.key), { method: 'DELETE' });
+		if (!res.ok) { alert('되돌리지 못했습니다.'); return; }
+		bootstrap.Modal.getOrCreateInstance(document.getElementById('bannerModal')).hide();
+		loadBanners();
+	}
+</script>
+</body>
+</html>
